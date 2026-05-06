@@ -168,7 +168,7 @@ export default function Jogos() {
             className="h-5 w-7 rounded object-cover md:h-6 md:w-9"
           />
         )}
-        <span className="font-bold">{team?.name}</span>
+        <span className="font-bold text-gray-900">{team?.name}</span>
       </div>
     );
   }
