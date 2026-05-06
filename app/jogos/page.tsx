@@ -158,6 +158,50 @@ function TeamDisplay({
     }));
   }
 
+  async function salvarTodosPalpites() {
+  if (!user) {
+    alert("Você precisa estar logado");
+    return;
+  }
+
+const palpitesParaSalvar = matches
+  .filter((m) => m.round === rodadaSelecionada)
+  .flatMap((m) => {
+    const palpite = palpites[m.id];
+
+    if (!palpite || palpite.home === "" || palpite.away === "") {
+      return [];
+    }
+
+    return [
+      {
+        user_id: user.id,
+        match_id: m.id,
+        home_score_pick: Number(palpite.home),
+        away_score_pick: Number(palpite.away),
+      },
+    ];
+  });
+
+  if (palpitesParaSalvar.length === 0) {
+    alert("Nenhum palpite preenchido.");
+    return;
+  }
+
+  const { error } = await supabase
+    .from("picks")
+    .upsert(palpitesParaSalvar, {
+      onConflict: "user_id,match_id",
+    });
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  alert("Palpites salvos!");
+}
+
   async function salvarPalpite(matchId: number) {
     if (!user) {
       alert("Você precisa estar logado");
@@ -203,7 +247,7 @@ function TeamDisplay({
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-green-700 via-emerald-600 to-yellow-400 p-6">
+<main className="min-h-screen bg-gradient-to-br from-green-700 via-emerald-600 to-yellow-400 p-6 pb-28">
       <div className="mx-auto max-w-5xl">
         <Navbar />
         <header className="mb-8 rounded-2xl bg-white/95 p-6 shadow-lg">
@@ -357,17 +401,7 @@ function TeamDisplay({
                         </div>
                       )}
 
-                      <button
-                        disabled={bloqueado}
-                        onClick={() => salvarPalpite(m.id)}
-                        className={`mt-4 w-full rounded-lg px-4 py-3 font-bold text-white transition ${
-                          bloqueado
-                            ? "cursor-not-allowed bg-gray-400"
-                            : "bg-green-600 hover:bg-green-700"
-                        }`}
-                      >
-                        {bloqueado ? "Jogo bloqueado" : "Salvar palpite"}
-                      </button>
+
                     </div>
                   );
                 })}
@@ -376,6 +410,12 @@ function TeamDisplay({
           ))}
         </div>
       </div>
+        <button
+        onClick={salvarTodosPalpites}
+        className="fixed bottom-5 left-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 rounded-2xl bg-green-600 py-4 text-lg font-black text-white shadow-2xl hover:bg-green-700 active:scale-95"
+      >
+        Salvar palpites da rodada
+      </button>
     </main>
   );
 }
