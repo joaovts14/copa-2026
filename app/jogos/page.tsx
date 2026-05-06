@@ -115,24 +115,24 @@ export default function Jogos() {
     return getTeam(id)?.name || "Time não encontrado";
   }
 
-  function TeamDisplay({ teamId, align = "left" }: { teamId: number; align?: "left" | "right" }) {
+function TeamDisplay({
+  teamId,
+}: {
+  teamId: number;
+}) {
   const team = getTeam(teamId);
 
   return (
-    <div
-      className={`flex items-center gap-2 ${
-        align === "right" ? "justify-end" : "justify-start"
-      }`}
-    >
+    <div className="flex max-w-full items-center justify-center gap-2 text-center md:justify-start">
       {team?.flag_url && (
         <img
           src={team.flag_url}
           alt={`Bandeira ${team.name}`}
-          className="h-5 w-7 md:h-6 md:w-9"
+          className="h-5 w-7 shrink-0 rounded-sm object-cover shadow md:h-6 md:w-9"
         />
       )}
 
-      <span className="font-bold text-gray-900">
+      <span className="break-words text-lg font-bold text-gray-900 md:text-base">
         {team?.name || "Time não encontrado"}
       </span>
     </div>
@@ -300,47 +300,49 @@ export default function Jogos() {
                         </span>
                       </div>
 
-                      <div className="flex flex-col gap-3 md:grid md:grid-cols-[1fr_auto_1fr] md:items-center">                        
-                        <div className="md:text-left text-center">
-                        <TeamDisplay teamId={m.home_team_id} />
-                        </div>
+<div className="flex flex-col gap-4 md:grid md:grid-cols-[1fr_auto_1fr] md:items-center">
+  <div className="flex justify-center md:justify-start">
+    <TeamDisplay teamId={m.home_team_id} />
+  </div>
 
-                        {bloqueado ? (
-                          <div className="flex items-center gap-2 rounded-lg bg-gray-100 px-4 py-2 text-lg font-black">
-                            <span>{m.home_score ?? "-"}</span>
-                            <span>x</span>
-                            <span>{m.away_score ?? "-"}</span>
-                          </div>
-                        ) : (
-                          <div className="flex items-center justify-center gap-2">
-                            <input
-                              type="number"
-                              min={0}
-                              className="w-14 rounded-lg border p-2 text-center font-bold"
-                              value={palpites[m.id]?.home || ""}
-                              onChange={(e) =>
-                                alterarPalpite(m.id, "home", e.target.value)
-                              }
-                            />
+  {bloqueado ? (
+    <div className="flex justify-center">
+      <div className="flex items-center gap-2 rounded-lg bg-gray-100 px-4 py-2 text-lg font-black">
+        <span>{m.home_score ?? "-"}</span>
+        <span>x</span>
+        <span>{m.away_score ?? "-"}</span>
+      </div>
+    </div>
+  ) : (
+    <div className="flex items-center justify-center gap-3">
+      <input
+        type="number"
+        min={0}
+        className="h-14 w-16 rounded-lg border p-2 text-center font-bold"
+        value={palpites[m.id]?.home || ""}
+        onChange={(e) =>
+          alterarPalpite(m.id, "home", e.target.value)
+        }
+      />
 
-                            <span className="font-bold">x</span>
+      <span className="font-bold text-gray-700">x</span>
 
-                            <input
-                              type="number"
-                              min={0}
-                              className="w-14 rounded-lg border p-2 text-center font-bold"
-                              value={palpites[m.id]?.away || ""}
-                              onChange={(e) =>
-                                alterarPalpite(m.id, "away", e.target.value)
-                              }
-                            />
-                          </div>
-                        )}
+      <input
+        type="number"
+        min={0}
+        className="h-14 w-16 rounded-lg border p-2 text-center font-bold"
+        value={palpites[m.id]?.away || ""}
+        onChange={(e) =>
+          alterarPalpite(m.id, "away", e.target.value)
+        }
+      />
+    </div>
+  )}
 
-                        <div className="md:text-right text-center">
-                            <TeamDisplay teamId={m.away_team_id} align="right" />
-                        </div>
-                      </div>
+  <div className="flex justify-center md:justify-end">
+    <TeamDisplay teamId={m.away_team_id} />
+  </div>
+</div>
 
                       {bloqueado && (
                         <div className="mt-3 text-sm text-gray-600">
