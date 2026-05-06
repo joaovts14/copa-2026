@@ -346,9 +346,7 @@ function TeamDisplay({
   </div>
 
   {/* X CENTRAL */}
-  <div className="text-center text-lg font-bold text-gray-500">
-    x
-  </div>
+<span className="hidden md:inline font-bold text-gray-700">x</span>
 </div>
 
                       {bloqueado && (
