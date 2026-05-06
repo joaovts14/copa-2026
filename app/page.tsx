@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "../lib/supabase/client";
 
@@ -11,6 +11,22 @@ export default function Home() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
+
+  useEffect(() => {
+    async function verificarSessao() {
+      const { data } = await supabase.auth.getUser();
+
+      if (data.user) {
+        router.push("/jogos");
+        return;
+      }
+
+      setCheckingSession(false);
+    }
+
+    verificarSessao();
+  }, []);
 
   async function entrar() {
     setLoading(true);
@@ -46,6 +62,16 @@ export default function Home() {
     }
 
     router.push("/jogos");
+  }
+
+  if (checkingSession) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-green-700 via-emerald-600 to-yellow-400 p-6">
+        <div className="rounded-2xl bg-white p-8 font-bold shadow-xl">
+          Verificando sessão...
+        </div>
+      </main>
+    );
   }
 
   return (

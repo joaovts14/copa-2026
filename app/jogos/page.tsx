@@ -8,6 +8,7 @@ type Team = {
   id: number;
   name: string;
   group_name: string;
+  flag_url: string | null;
 };
 
 type Match = {
@@ -105,6 +106,30 @@ export default function Jogos() {
   function getTeamName(id: number) {
     return getTeam(id)?.name || "Time não encontrado";
   }
+
+  function TeamDisplay({ teamId, align = "left" }: { teamId: number; align?: "left" | "right" }) {
+  const team = getTeam(teamId);
+
+  return (
+    <div
+      className={`flex items-center gap-2 ${
+        align === "right" ? "justify-end" : "justify-start"
+      }`}
+    >
+      {team?.flag_url && (
+        <img
+          src={team.flag_url}
+          alt={`Bandeira ${team.name}`}
+          className="h-5 w-7 rounded-sm object-cover shadow-sm"
+        />
+      )}
+
+      <span className="font-bold text-gray-900">
+        {team?.name || "Time não encontrado"}
+      </span>
+    </div>
+  );
+}
 
   function jogoJaComecou(match: Match) {
     return new Date(match.match_date) <= new Date();
@@ -253,9 +278,7 @@ export default function Jogos() {
 
                       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4">
                         <div className="text-left">
-                          <p className="font-bold text-gray-900">
-                            {getTeamName(m.home_team_id)}
-                          </p>
+                        <TeamDisplay teamId={m.home_team_id} />
                         </div>
 
                         {bloqueado ? (
@@ -291,9 +314,7 @@ export default function Jogos() {
                         )}
 
                         <div className="text-right">
-                          <p className="font-bold text-gray-900">
-                            {getTeamName(m.away_team_id)}
-                          </p>
+                            <TeamDisplay teamId={m.away_team_id} align="right" />
                         </div>
                       </div>
 
