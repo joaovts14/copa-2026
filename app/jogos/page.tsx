@@ -19,12 +19,15 @@ type Match = {
   home_score: number | null;
   away_score: number | null;
   status: string;
+  round: number;
 };
 
 type Palpite = {
   home: string;
   away: string;
 };
+
+
 
 export default function Jogos() {
   const supabase = createClient();
@@ -81,11 +84,16 @@ export default function Jogos() {
 
     load();
   }, []);
+  const [rodadaSelecionada, setRodadaSelecionada] = useState(1);
+
+  const matchesDaRodada = useMemo(() => {
+  return matches.filter((match) => match.round === rodadaSelecionada);
+}, [matches, rodadaSelecionada]);
 
   const matchesByGroup = useMemo(() => {
     const grupos: Record<string, Match[]> = {};
 
-    matches.forEach((match) => {
+    matchesDaRodada.forEach((match) => {
       const homeTeam = getTeam(match.home_team_id);
       const grupo = homeTeam?.group_name || "Sem grupo";
 
@@ -97,7 +105,7 @@ export default function Jogos() {
     });
 
     return Object.entries(grupos).sort(([a], [b]) => a.localeCompare(b));
-  }, [matches, teams]);
+  }, [matchesDaRodada, teams]);
 
   function getTeam(id: number) {
     return teams.find((team) => team.id === id);
@@ -219,6 +227,22 @@ export default function Jogos() {
           )}
         </header>
 
+        <div className="mb-6 grid grid-cols-3 gap-3">
+            {[1, 2, 3].map((rodada) => (
+                <button
+                key={rodada}
+                onClick={() => setRodadaSelecionada(rodada)}
+                className={`rounded-xl px-4 py-3 font-black shadow transition ${
+                    rodadaSelecionada === rodada
+                    ? "bg-gray-900 text-white"
+                    : "bg-white text-gray-700 hover:bg-gray-100"
+                }`}
+                >
+                Rodada {rodada}
+                </button>
+            ))}
+        </div>
+
         {loading && (
           <div className="rounded-xl bg-white p-6 text-center shadow">
             Carregando jogos...
@@ -227,7 +251,7 @@ export default function Jogos() {
 
         {!loading && matches.length === 0 && (
           <div className="rounded-xl bg-white p-6 text-center text-gray-600 shadow">
-            Nenhum jogo encontrado.
+            Nenhum jogo encontrado para esta rodada.
           </div>
         )}
 
