@@ -200,7 +200,6 @@ function TeamDisplay({
       return;
     }
 
-    alert("Palpite salvo!");
   }
 
   return (
@@ -346,7 +345,6 @@ function TeamDisplay({
   </div>
 
   {/* X CENTRAL */}
-<span className="hidden md:inline font-bold text-gray-700">x</span>
 </div>
 
                       {bloqueado && (
