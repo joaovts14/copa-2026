@@ -300,47 +300,56 @@ function TeamDisplay({
                         </span>
                       </div>
 
-<div className="flex flex-col gap-4 md:grid md:grid-cols-[1fr_auto_1fr] md:items-center">
-  <div className="flex justify-center md:justify-start">
+<div className="flex flex-col gap-4">
+  {/* TIME CASA */}
+  <div className="flex items-center justify-between gap-3">
     <TeamDisplay teamId={m.home_team_id} />
-  </div>
 
-  {bloqueado ? (
-    <div className="flex justify-center">
-      <div className="flex items-center gap-2 rounded-lg bg-gray-100 px-4 py-2 text-lg font-black">
-        <span>{m.home_score ?? "-"}</span>
-        <span>x</span>
-        <span>{m.away_score ?? "-"}</span>
-      </div>
-    </div>
-  ) : (
-    <div className="flex items-center justify-center gap-3">
+    {!bloqueado && (
       <input
         type="number"
         min={0}
-        className="h-14 w-16 rounded-lg border p-2 text-center font-bold"
+        className="h-12 w-16 rounded-lg border text-center font-bold"
         value={palpites[m.id]?.home || ""}
         onChange={(e) =>
           alterarPalpite(m.id, "home", e.target.value)
         }
       />
+    )}
 
-      <span className="font-bold text-gray-700">x</span>
+    {bloqueado && (
+      <span className="text-xl font-black">
+        {m.home_score ?? "-"}
+      </span>
+    )}
+  </div>
 
+  {/* TIME VISITANTE */}
+  <div className="flex items-center justify-between gap-3">
+    <TeamDisplay teamId={m.away_team_id} />
+
+    {!bloqueado && (
       <input
         type="number"
         min={0}
-        className="h-14 w-16 rounded-lg border p-2 text-center font-bold"
+        className="h-12 w-16 rounded-lg border text-center font-bold"
         value={palpites[m.id]?.away || ""}
         onChange={(e) =>
           alterarPalpite(m.id, "away", e.target.value)
         }
       />
-    </div>
-  )}
+    )}
 
-  <div className="flex justify-center md:justify-end">
-    <TeamDisplay teamId={m.away_team_id} />
+    {bloqueado && (
+      <span className="text-xl font-black">
+        {m.away_score ?? "-"}
+      </span>
+    )}
+  </div>
+
+  {/* X CENTRAL */}
+  <div className="text-center text-lg font-bold text-gray-500">
+    x
   </div>
 </div>
 
