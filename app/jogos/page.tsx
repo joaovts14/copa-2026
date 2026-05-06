@@ -236,7 +236,7 @@ export default function Jogos() {
                   <TeamDisplay teamId={m.home_team_id} />
                   <input
                     type="number"
-                    className="h-12 w-16 rounded-lg border border-gray-400 text-center font-bold"
+                    className="h-12 w-16 text-gray-900 rounded-lg border border-gray-400 text-center font-bold"
                     value={palpites[m.id]?.home || ""}
                     onChange={(e) =>
                       alterarPalpite(m.id, "home", e.target.value)
@@ -248,7 +248,7 @@ export default function Jogos() {
                   <TeamDisplay teamId={m.away_team_id} />
                   <input
                     type="number"
-                    className="h-12 w-16 rounded-lg border border-gray-400 text-center font-bold"
+                    className="h-12 w-16 rounded-lg border text-gray-900 border-gray-400 text-center font-bold"
                     value={palpites[m.id]?.away || ""}
                     onChange={(e) =>
                       alterarPalpite(m.id, "away", e.target.value)
