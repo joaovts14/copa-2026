@@ -20,6 +20,7 @@ type Match = {
   away_score: number | null;
   status: string;
   round: number;
+  stage: string;
 };
 
 type Palpite = {
@@ -27,15 +28,17 @@ type Palpite = {
   away: string;
 };
 
-
-
 export default function Jogos() {
   const supabase = createClient();
 
-  const [matches, setMatches] = useState<Match[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
+  const [matches, setMatches] = useState<Match[]>([]);
   const [user, setUser] = useState<any>(null);
   const [palpites, setPalpites] = useState<Record<number, Palpite>>({});
+
+  const [faseSelecionada, setFaseSelecionada] = useState("groups");
+  const [rodadaSelecionada, setRodadaSelecionada] = useState(1);
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -43,15 +46,11 @@ export default function Jogos() {
       setLoading(true);
 
       const { data: userData } = await supabase.auth.getUser();
-      const usuario = userData.user;
-
-      setUser(usuario);
+      setUser(userData.user);
 
       const { data: teamsData } = await supabase
         .from("teams")
-        .select("*")
-        .order("group_name")
-        .order("id");
+        .select("*");
 
       const { data: matchesData } = await supabase
         .from("matches")
@@ -61,11 +60,11 @@ export default function Jogos() {
       setTeams(teamsData || []);
       setMatches(matchesData || []);
 
-      if (usuario) {
+      if (userData.user) {
         const { data: picksData } = await supabase
           .from("picks")
           .select("*")
-          .eq("user_id", usuario.id);
+          .eq("user_id", userData.user.id);
 
         const mapa: Record<number, Palpite> = {};
 
@@ -84,63 +83,21 @@ export default function Jogos() {
 
     load();
   }, []);
-  const [rodadaSelecionada, setRodadaSelecionada] = useState(1);
 
-  const matchesDaRodada = useMemo(() => {
-  return matches.filter((match) => match.round === rodadaSelecionada);
-}, [matches, rodadaSelecionada]);
+  const matchesFiltrados = useMemo(() => {
+    if (faseSelecionada === "groups") {
+      return matches.filter(
+        (m) =>
+          m.stage === "groups" &&
+          m.round === rodadaSelecionada
+      );
+    }
 
-  const matchesByGroup = useMemo(() => {
-    const grupos: Record<string, Match[]> = {};
-
-    matchesDaRodada.forEach((match) => {
-      const homeTeam = getTeam(match.home_team_id);
-      const grupo = homeTeam?.group_name || "Sem grupo";
-
-      if (!grupos[grupo]) {
-        grupos[grupo] = [];
-      }
-
-      grupos[grupo].push(match);
-    });
-
-    return Object.entries(grupos).sort(([a], [b]) => a.localeCompare(b));
-  }, [matchesDaRodada, teams]);
+    return matches.filter((m) => m.stage === faseSelecionada);
+  }, [matches, faseSelecionada, rodadaSelecionada]);
 
   function getTeam(id: number) {
-    return teams.find((team) => team.id === id);
-  }
-
-  function getTeamName(id: number) {
-    return getTeam(id)?.name || "Time não encontrado";
-  }
-
-function TeamDisplay({
-  teamId,
-}: {
-  teamId: number;
-}) {
-  const team = getTeam(teamId);
-
-  return (
-    <div className="flex max-w-full items-center justify-center gap-2 text-center md:justify-start">
-      {team?.flag_url && (
-        <img
-          src={team.flag_url}
-          alt={`Bandeira ${team.name}`}
-          className="h-5 w-7 shrink-0 rounded-sm object-cover shadow md:h-6 md:w-9"
-        />
-      )}
-
-      <span className="break-words text-lg font-bold text-gray-900 md:text-base">
-        {team?.name || "Time não encontrado"}
-      </span>
-    </div>
-  );
-}
-
-  function jogoJaComecou(match: Match) {
-    return new Date(match.match_date) <= new Date();
+    return teams.find((t) => t.id === id);
   }
 
   function alterarPalpite(
@@ -159,262 +116,157 @@ function TeamDisplay({
   }
 
   async function salvarTodosPalpites() {
-  if (!user) {
-    alert("Você precisa estar logado");
-    return;
-  }
+    if (!user) return;
 
-const palpitesParaSalvar = matches
-  .filter((m) => m.round === rodadaSelecionada)
-  .flatMap((m) => {
-    const palpite = palpites[m.id];
+    const palpitesParaSalvar = matches
+      .filter((m) => m.round === rodadaSelecionada)
+      .flatMap((m) => {
+        const palpite = palpites[m.id];
 
-    if (!palpite || palpite.home === "" || palpite.away === "") {
-      return [];
-    }
+        if (!palpite || palpite.home === "" || palpite.away === "") {
+          return [];
+        }
 
-    return [
-      {
-        user_id: user.id,
-        match_id: m.id,
-        home_score_pick: Number(palpite.home),
-        away_score_pick: Number(palpite.away),
-      },
-    ];
-  });
+        return [
+          {
+            user_id: user.id,
+            match_id: m.id,
+            home_score_pick: Number(palpite.home),
+            away_score_pick: Number(palpite.away),
+          },
+        ];
+      });
 
-  if (palpitesParaSalvar.length === 0) {
-    alert("Nenhum palpite preenchido.");
-    return;
-  }
-
-  const { error } = await supabase
-    .from("picks")
-    .upsert(palpitesParaSalvar, {
-      onConflict: "user_id,match_id",
-    });
-
-  if (error) {
-    alert(error.message);
-    return;
-  }
-
-  alert("Palpites salvos!");
-}
-
-  async function salvarPalpite(matchId: number) {
-    if (!user) {
-      alert("Você precisa estar logado");
+    if (palpitesParaSalvar.length === 0) {
+      alert("Nenhum palpite preenchido.");
       return;
     }
 
-    const match = matches.find((m) => m.id === matchId);
-
-    if (!match) {
-      alert("Jogo não encontrado.");
-      return;
-    }
-
-    if (jogoJaComecou(match)) {
-      alert("Não é possível alterar o palpite depois que o jogo começou.");
-      return;
-    }
-
-    const palpite = palpites[matchId];
-
-    if (!palpite || palpite.home === "" || palpite.away === "") {
-      alert("Preencha o placar antes de salvar.");
-      return;
-    }
-
-    const { error } = await supabase.from("picks").upsert(
-      {
-        user_id: user.id,
-        match_id: matchId,
-        home_score_pick: Number(palpite.home),
-        away_score_pick: Number(palpite.away),
-      },
-      {
+    const { error } = await supabase
+      .from("picks")
+      .upsert(palpitesParaSalvar, {
         onConflict: "user_id,match_id",
-      }
-    );
+      });
 
     if (error) {
       alert(error.message);
       return;
     }
 
+    alert("Palpites salvos!");
+  }
+
+  function TeamDisplay({ teamId }: { teamId: number }) {
+    const team = getTeam(teamId);
+
+    return (
+      <div className="flex items-center gap-2">
+        {team?.flag_url && (
+          <img
+            src={team.flag_url}
+            alt={team.name}
+            className="h-5 w-7 rounded object-cover md:h-6 md:w-9"
+          />
+        )}
+        <span className="font-bold">{team?.name}</span>
+      </div>
+    );
   }
 
   return (
-<main className="min-h-screen bg-gradient-to-br from-green-700 via-emerald-600 to-yellow-400 p-6 pb-28">
+    <main className="min-h-screen bg-gradient-to-br from-green-700 via-emerald-600 to-yellow-400 p-6 pb-28">
       <div className="mx-auto max-w-5xl">
         <Navbar />
-        <header className="mb-8 rounded-2xl bg-white/95 p-6 shadow-lg">
-          <p className="text-sm font-bold uppercase tracking-widest text-green-700">
-            Copa do Mundo 2026
-          </p>
 
-          <h1 className="mt-2 text-3xl font-black text-gray-900">
-            Bolão da Copa
-          </h1>
-
-          <p className="mt-2 text-gray-600">
-            Faça seus palpites por grupo antes dos jogos começarem.
-          </p>
-
-          {!user && (
-            <p className="mt-4 rounded-lg bg-yellow-100 p-3 text-yellow-800">
-              Você não está logado. Faça login antes de salvar palpites.
-            </p>
-          )}
-        </header>
-
-        <div className="mb-6 grid grid-cols-3 gap-3">
-            {[1, 2, 3].map((rodada) => (
-                <button
-                key={rodada}
-                onClick={() => setRodadaSelecionada(rodada)}
-                className={`rounded-xl px-4 py-3 font-black shadow transition ${
-                    rodadaSelecionada === rodada
-                    ? "bg-gray-900 text-white"
-                    : "bg-white text-gray-700 hover:bg-gray-100"
-                }`}
-                >
-                Rodada {rodada}
-                </button>
-            ))}
+        {/* Abas */}
+        <div className="mb-6 flex gap-2 overflow-x-auto">
+          {[
+            { key: "groups", label: "Grupos" },
+            { key: "round_of_32", label: "16 avos" },
+            { key: "round_of_16", label: "Oitavas" },
+            { key: "quarterfinals", label: "Quartas" },
+            { key: "semifinals", label: "Semi" },
+            { key: "final", label: "Final" },
+          ].map((fase) => (
+            <button
+              key={fase.key}
+              onClick={() => setFaseSelecionada(fase.key)}
+              className={`rounded-xl px-4 py-2 font-bold ${
+                faseSelecionada === fase.key
+                  ? "bg-black text-white"
+                  : "bg-white text-gray-700"
+              }`}
+            >
+              {fase.label}
+            </button>
+          ))}
         </div>
 
-        {loading && (
-          <div className="rounded-xl bg-white p-6 text-center shadow">
-            Carregando jogos...
+        {/* Rodadas */}
+        {faseSelecionada === "groups" && (
+          <div className="mb-6 grid grid-cols-3 gap-2">
+            {[1, 2, 3].map((rodada) => (
+              <button
+                key={rodada}
+                onClick={() => setRodadaSelecionada(rodada)}
+                className={`rounded-xl px-3 py-2 font-bold ${
+                  rodadaSelecionada === rodada
+                    ? "bg-gray-700 text-white"
+                    : "bg-white text-gray-700"
+                }`}
+              >
+                Rodada {rodada}
+              </button>
+            ))}
           </div>
         )}
 
-        {!loading && matches.length === 0 && (
-          <div className="rounded-xl bg-white p-6 text-center text-gray-600 shadow">
-            Nenhum jogo encontrado para esta rodada.
-          </div>
-        )}
+        {/* Jogos */}
+        {loading && <p>Carregando...</p>}
 
-        <div className="flex flex-col gap-8">
-          {matchesByGroup.map(([groupName, groupMatches]) => (
-            <section
-              key={groupName}
-              className="overflow-hidden rounded-2xl bg-white shadow-xl"
-            >
-              <div className="bg-gray-900 px-6 py-4 text-white">
-                <h2 className="text-xl font-black">Grupo {groupName}</h2>
-
-                <p className="mt-1 text-sm text-gray-300">
-                  {teams
-                    .filter((team) => team.group_name === groupName)
-                    .map((team) => team.name)
-                    .join(" • ")}
-                </p>
+        <div className="flex flex-col gap-4">
+          {matchesFiltrados.map((m) => (
+            <div key={m.id} className="rounded-xl bg-white p-4 shadow">
+              <div className="mb-2 text-sm text-gray-500">
+                {new Date(m.match_date).toLocaleString("pt-BR")}
               </div>
 
-              <div className="divide-y">
-                {groupMatches.map((m) => {
-                  const bloqueado = jogoJaComecou(m);
+              <div className="flex flex-col gap-4">
+                <div className="flex justify-between">
+                  <TeamDisplay teamId={m.home_team_id} />
+                  <input
+                    type="number"
+                    className="h-12 w-16 rounded-lg border border-gray-400 text-center font-bold"
+                    value={palpites[m.id]?.home || ""}
+                    onChange={(e) =>
+                      alterarPalpite(m.id, "home", e.target.value)
+                    }
+                  />
+                </div>
 
-                  return (
-                    <div key={m.id} className="p-5">
-                      <div className="mb-3 flex items-center justify-between gap-4 text-sm text-gray-500">
-                        <span>
-                          {new Date(m.match_date).toLocaleString("pt-BR", {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </span>
-
-                        <span
-                          className={`rounded-full px-3 py-1 text-xs font-bold ${
-                            bloqueado
-                              ? "bg-gray-200 text-gray-700"
-                              : "bg-green-100 text-green-700"
-                          }`}
-                        >
-                          {bloqueado ? "Bloqueado" : "Aberto"}
-                        </span>
-                      </div>
-
-<div className="flex flex-col gap-4">
-  {/* TIME CASA */}
-  <div className="flex items-center justify-between gap-3">
-    <TeamDisplay teamId={m.home_team_id} />
-
-    {!bloqueado && (
-      <input
-        type="number"
-        min={0}
-        className="h-12 w-16 rounded-lg border border-gray-400 bg-white text-center font-bold text-gray-900 shadow-sm focus:border-green-600 focus:outline-none focus:ring-2 focus:ring-green-200"        value={palpites[m.id]?.home || ""}
-        onChange={(e) =>
-          alterarPalpite(m.id, "home", e.target.value)
-        }
-      />
-    )}
-
-    {bloqueado && (
-      <span className="text-xl font-black">
-        {m.home_score ?? "-"}
-      </span>
-    )}
-  </div>
-
-  {/* TIME VISITANTE */}
-  <div className="flex items-center justify-between gap-3">
-    <TeamDisplay teamId={m.away_team_id} />
-
-    {!bloqueado && (
-      <input
-        type="number"
-        min={0}
-        className="h-12 w-16 rounded-lg border border-gray-400 bg-white text-center font-bold text-gray-900 shadow-sm focus:border-green-600 focus:outline-none focus:ring-2 focus:ring-green-200"        value={palpites[m.id]?.away || ""}
-        onChange={(e) =>
-          alterarPalpite(m.id, "away", e.target.value)
-        }
-      />
-    )}
-
-    {bloqueado && (
-      <span className="text-xl font-black">
-        {m.away_score ?? "-"}
-      </span>
-    )}
-  </div>
-
-  {/* X CENTRAL */}
-</div>
-
-                      {bloqueado && (
-                        <div className="mt-3 text-sm text-gray-600">
-                          Seu palpite:{" "}
-                          <strong>
-                            {palpites[m.id]?.home ?? "-"} x{" "}
-                            {palpites[m.id]?.away ?? "-"}
-                          </strong>
-                        </div>
-                      )}
-
-
-                    </div>
-                  );
-                })}
+                <div className="flex justify-between">
+                  <TeamDisplay teamId={m.away_team_id} />
+                  <input
+                    type="number"
+                    className="h-12 w-16 rounded-lg border border-gray-400 text-center font-bold"
+                    value={palpites[m.id]?.away || ""}
+                    onChange={(e) =>
+                      alterarPalpite(m.id, "away", e.target.value)
+                    }
+                  />
+                </div>
               </div>
-            </section>
+            </div>
           ))}
         </div>
       </div>
-        <button
+
+      {/* Botão flutuante */}
+      <button
         onClick={salvarTodosPalpites}
-        className="fixed bottom-5 left-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 rounded-2xl bg-green-600 py-4 text-lg font-black text-white shadow-2xl hover:bg-green-700 active:scale-95"
+        className="fixed bottom-5 left-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 rounded-2xl bg-green-600 py-4 text-lg font-black text-white shadow-2xl"
       >
-        Salvar palpites da rodada
+        Salvar palpites
       </button>
     </main>
   );
