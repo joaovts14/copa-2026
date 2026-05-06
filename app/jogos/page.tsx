@@ -120,7 +120,7 @@ export default function Jogos() {
         <img
           src={team.flag_url}
           alt={`Bandeira ${team.name}`}
-          className="h-5 w-7 rounded-sm object-cover shadow-sm"
+          className="h-5 w-7 md:h-6 md:w-9"
         />
       )}
 
@@ -276,8 +276,8 @@ export default function Jogos() {
                         </span>
                       </div>
 
-                      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4">
-                        <div className="text-left">
+                      <div className="flex flex-col gap-3 md:grid md:grid-cols-[1fr_auto_1fr] md:items-center">                        
+                        <div className="md:text-left text-center">
                         <TeamDisplay teamId={m.home_team_id} />
                         </div>
 
@@ -288,7 +288,7 @@ export default function Jogos() {
                             <span>{m.away_score ?? "-"}</span>
                           </div>
                         ) : (
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center justify-center gap-2">
                             <input
                               type="number"
                               min={0}
@@ -313,7 +313,7 @@ export default function Jogos() {
                           </div>
                         )}
 
-                        <div className="text-right">
+                        <div className="md:text-right text-center">
                             <TeamDisplay teamId={m.away_team_id} align="right" />
                         </div>
                       </div>
