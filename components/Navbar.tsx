@@ -25,9 +25,6 @@ export default function Navbar() {
             Início
           </Link>
 
-          <Link href="/jogos" className="text-gray-700 hover:text-green-700">
-            Jogos
-          </Link>
 
           <Link href="/ranking" className="text-gray-700 hover:text-green-700">
             Ranking
