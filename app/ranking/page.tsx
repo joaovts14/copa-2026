@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "../../lib/supabase/client";
+import Navbar from "../../components/Navbar";
 
 export default function Ranking() {
   const supabase = createClient();
@@ -25,6 +26,7 @@ export default function Ranking() {
 
   return (
     <main className="min-h-screen bg-gray-100 p-8">
+      <Navbar />
       <h1 className="text-2xl font-bold">Ranking</h1>
 
       <div className="mt-6 rounded bg-white shadow">

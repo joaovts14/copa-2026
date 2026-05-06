@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "../../lib/supabase/client";
+import Navbar from "../../components/Navbar";
 
 type Team = {
   id: number;
@@ -172,6 +173,7 @@ export default function Jogos() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-green-700 via-emerald-600 to-yellow-400 p-6">
       <div className="mx-auto max-w-5xl">
+        <Navbar />
         <header className="mb-8 rounded-2xl bg-white/95 p-6 shadow-lg">
           <p className="text-sm font-bold uppercase tracking-widest text-green-700">
             Copa do Mundo 2026

@@ -1,61 +1,69 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "../lib/supabase/client";
 
 export default function Home() {
   const supabase = createClient();
+  const router = useRouter();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
-  async function cadastrar() {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-
-    console.log("cadastro:", data);
-    console.log("erro:", error);
-
-    if (error) {
-      alert(error.message);
-      return;
-    }
-
-    alert("Cadastro realizado! Verifique seu e-mail, se necessário.");
-  }
+  const [loading, setLoading] = useState(false);
 
   async function entrar() {
-    const { data, error } = await supabase.auth.signInWithPassword({
+    setLoading(true);
+
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    console.log("login:", data);
-    console.log("erro:", error);
+    setLoading(false);
 
     if (error) {
       alert(error.message);
       return;
     }
 
-    alert("Login realizado com sucesso!");
+    router.push("/jogos");
+  }
+
+  async function cadastrar() {
+    setLoading(true);
+
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+
+    setLoading(false);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    router.push("/jogos");
   }
 
   return (
-    <main className="min-h-screen bg-gray-100 p-8">
-      <div className="mx-auto max-w-md rounded-xl bg-white p-6 shadow">
-        <h1 className="text-2xl font-bold">Bolão da Copa</h1>
+    <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-green-700 via-emerald-600 to-yellow-400 p-6">
+      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
+        <h1 className="text-3xl font-black text-gray-900">
+          Bolão da Copa 2026
+        </h1>
+
         <p className="mt-2 text-gray-600">
-          Entre ou crie sua conta para adicionar seus palpites.
+          Faça login ou crie sua conta para começar.
         </p>
 
-        <div className="mt-6 flex flex-col gap-3">
+        <div className="mt-6 flex flex-col gap-4">
           <input
             type="email"
             placeholder="Seu e-mail"
-            className="rounded border p-3"
+            className="rounded-lg border p-3"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
@@ -63,21 +71,23 @@ export default function Home() {
           <input
             type="password"
             placeholder="Sua senha"
-            className="rounded border p-3"
+            className="rounded-lg border p-3"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
 
           <button
             onClick={entrar}
-            className="rounded bg-blue-600 p-3 font-semibold text-white"
+            disabled={loading}
+            className="rounded-lg bg-green-600 p-3 font-bold text-white hover:bg-green-700 disabled:bg-gray-400"
           >
-            Entrar
+            {loading ? "Entrando..." : "Entrar"}
           </button>
 
           <button
             onClick={cadastrar}
-            className="rounded border border-blue-600 p-3 font-semibold text-blue-600"
+            disabled={loading}
+            className="rounded-lg border border-green-600 p-3 font-bold text-green-600 hover:bg-green-50 disabled:border-gray-400 disabled:text-gray-400"
           >
             Criar conta
           </button>
