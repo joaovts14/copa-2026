@@ -309,8 +309,7 @@ function TeamDisplay({
       <input
         type="number"
         min={0}
-        className="h-12 w-16 rounded-lg border text-center font-bold"
-        value={palpites[m.id]?.home || ""}
+        className="h-12 w-16 rounded-lg border border-gray-400 bg-white text-center font-bold text-gray-900 shadow-sm focus:border-green-600 focus:outline-none focus:ring-2 focus:ring-green-200"        value={palpites[m.id]?.home || ""}
         onChange={(e) =>
           alterarPalpite(m.id, "home", e.target.value)
         }
@@ -332,8 +331,7 @@ function TeamDisplay({
       <input
         type="number"
         min={0}
-        className="h-12 w-16 rounded-lg border text-center font-bold"
-        value={palpites[m.id]?.away || ""}
+        className="h-12 w-16 rounded-lg border border-gray-400 bg-white text-center font-bold text-gray-900 shadow-sm focus:border-green-600 focus:outline-none focus:ring-2 focus:ring-green-200"        value={palpites[m.id]?.away || ""}
         onChange={(e) =>
           alterarPalpite(m.id, "away", e.target.value)
         }

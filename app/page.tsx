@@ -89,7 +89,7 @@ export default function Home() {
           <input
             type="email"
             placeholder="Seu e-mail"
-            className="rounded-lg border p-3"
+            className="rounded-lg border border-gray-300 bg-gray-50 p-3 text-gray-900 placeholder-gray-500 focus:border-green-600 focus:outline-none focus:ring-2 focus:ring-green-200"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
@@ -97,7 +97,7 @@ export default function Home() {
           <input
             type="password"
             placeholder="Sua senha"
-            className="rounded-lg border p-3"
+            className="rounded-lg border border-gray-300 bg-gray-50 p-3 text-gray-900 placeholder-gray-500 focus:border-green-600 focus:outline-none focus:ring-2 focus:ring-green-200"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
