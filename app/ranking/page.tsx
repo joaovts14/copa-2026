@@ -79,7 +79,7 @@ export default function Ranking() {
 
                 <div>
                   <p className="font-bold text-gray-900">
-                    {r.email}
+                    {r.nome}
                   </p>
                 </div>
               </div>

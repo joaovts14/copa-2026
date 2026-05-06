@@ -8,8 +8,11 @@ export default function Home() {
   const supabase = createClient();
   const router = useRouter();
 
+  const [modoCadastro, setModoCadastro] = useState(false);
+  const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
   const [loading, setLoading] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
 
@@ -29,6 +32,11 @@ export default function Home() {
   }, []);
 
   async function entrar() {
+    if (!email || !password) {
+      alert("Informe e-mail e senha.");
+      return;
+    }
+
     setLoading(true);
 
     const { error } = await supabase.auth.signInWithPassword({
@@ -47,11 +55,26 @@ export default function Home() {
   }
 
   async function cadastrar() {
+    if (!nome.trim()) {
+      alert("Informe seu nome.");
+      return;
+    }
+
+    if (!email || !password) {
+      alert("Informe e-mail e senha.");
+      return;
+    }
+
     setLoading(true);
 
     const { error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        data: {
+          nome: nome.trim(),
+        },
+      },
     });
 
     setLoading(false);
@@ -64,10 +87,15 @@ export default function Home() {
     router.push("/jogos");
   }
 
+  function alternarModo() {
+    setModoCadastro((atual) => !atual);
+    setNome("");
+  }
+
   if (checkingSession) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-green-700 via-emerald-600 to-yellow-400 p-6">
-        <div className="rounded-2xl bg-white p-8 font-bold shadow-xl">
+        <div className="rounded-2xl bg-white p-8 font-bold shadow-xl text-gray-900">
           Verificando sessão...
         </div>
       </main>
@@ -82,10 +110,22 @@ export default function Home() {
         </h1>
 
         <p className="mt-2 text-gray-600">
-          Faça login ou crie sua conta para começar.
+          {modoCadastro
+            ? "Crie sua conta para começar a palpitar."
+            : "Faça login para acessar seus palpites."}
         </p>
 
         <div className="mt-6 flex flex-col gap-4">
+          {modoCadastro && (
+            <input
+              type="text"
+              placeholder="Seu nome"
+              className="rounded-lg border border-gray-300 bg-gray-50 p-3 text-gray-900 placeholder-gray-500 focus:border-green-600 focus:outline-none focus:ring-2 focus:ring-green-200"
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+            />
+          )}
+
           <input
             type="email"
             placeholder="Seu e-mail"
@@ -103,19 +143,26 @@ export default function Home() {
           />
 
           <button
-            onClick={entrar}
+            onClick={modoCadastro ? cadastrar : entrar}
             disabled={loading}
             className="rounded-lg bg-green-600 p-3 font-bold text-white hover:bg-green-700 disabled:bg-gray-400"
           >
-            {loading ? "Entrando..." : "Entrar"}
+            {loading
+              ? modoCadastro
+                ? "Criando conta..."
+                : "Entrando..."
+              : modoCadastro
+              ? "Criar conta"
+              : "Entrar"}
           </button>
 
           <button
-            onClick={cadastrar}
+            type="button"
+            onClick={alternarModo}
             disabled={loading}
-            className="rounded-lg border border-green-600 p-3 font-bold text-green-600 hover:bg-green-50 disabled:border-gray-400 disabled:text-gray-400"
+            className="rounded-lg border border-green-600 p-3 font-bold text-green-700 hover:bg-green-50 disabled:border-gray-400 disabled:text-gray-400"
           >
-            Criar conta
+            {modoCadastro ? "Já tenho conta" : "Criar nova conta"}
           </button>
         </div>
       </div>
