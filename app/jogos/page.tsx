@@ -117,25 +117,27 @@ export default function Jogos() {
 
   async function salvarTodosPalpites() {
     if (!user) return;
+    if (abaBloqueada) {
+  alert("Esta etapa já foi bloqueada.");
+  return;
+}
 
-    const palpitesParaSalvar = matches
-      .filter((m) => m.round === rodadaSelecionada)
-      .flatMap((m) => {
-        const palpite = palpites[m.id];
+const palpitesParaSalvar = matchesFiltrados.flatMap((m) => {
+  const palpite = palpites[m.id];
 
-        if (!palpite || palpite.home === "" || palpite.away === "") {
-          return [];
-        }
+  if (!palpite || palpite.home === "" || palpite.away === "") {
+    return [];
+  }
 
-        return [
-          {
-            user_id: user.id,
-            match_id: m.id,
-            home_score_pick: Number(palpite.home),
-            away_score_pick: Number(palpite.away),
-          },
-        ];
-      });
+  return [
+    {
+      user_id: user.id,
+      match_id: m.id,
+      home_score_pick: Number(palpite.home),
+      away_score_pick: Number(palpite.away),
+    },
+  ];
+});
 
     if (palpitesParaSalvar.length === 0) {
       alert("Nenhum palpite preenchido.");
@@ -243,11 +245,81 @@ function getResultadoPalpite(match: Match) {
   };
 }
 
+const totalJogosDaAba = matchesFiltrados.length;
+
+const preenchidosDaAba = matchesFiltrados.filter((m) => {
+  const p = palpites[m.id];
+  return p && p.home !== "" && p.away !== "";
+}).length;
+
+const faltantesDaAba = totalJogosDaAba - preenchidosDaAba;
+
+const prazoDaAba = matchesFiltrados.length
+  ? new Date(
+      Math.min(...matchesFiltrados.map((m) => new Date(m.match_date).getTime()))
+    )
+  : null;
+
+const abaBloqueada = prazoDaAba ? prazoDaAba <= new Date() : false;
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-green-700 via-emerald-600 to-yellow-400 p-6 pb-28">
       <div className="mx-auto max-w-5xl">
         <Navbar />
+<div className="mb-6 rounded-2xl bg-white p-5 shadow-xl">
+  <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+    <div>
+      <p className="text-sm font-bold uppercase tracking-wide text-green-700">
+        Status dos palpites
+      </p>
 
+      <h2 className="mt-1 text-2xl font-black text-gray-900">
+        {preenchidosDaAba}/{totalJogosDaAba} preenchidos
+      </h2>
+
+      <p className="mt-1 text-sm font-semibold text-gray-700">
+        {faltantesDaAba === 0
+          ? "Todos os palpites desta etapa foram preenchidos."
+          : `Faltam ${faltantesDaAba} palpites para preencher.`}
+      </p>
+    </div>
+
+    <div
+      className={`rounded-xl px-4 py-3 text-center font-bold ${
+        abaBloqueada
+          ? "bg-red-100 text-red-800"
+          : "bg-yellow-100 text-yellow-800"
+      }`}
+    >
+      {abaBloqueada ? (
+        "Etapa bloqueada"
+      ) : (
+        <>
+          Prazo até:
+          <br />
+          {prazoDaAba?.toLocaleString("pt-BR", {
+            day: "2-digit",
+            month: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+        </>
+      )}
+    </div>
+  </div>
+
+  <div className="mt-4 h-3 overflow-hidden rounded-full bg-gray-200">
+    <div
+      className="h-full rounded-full bg-green-600 transition-all"
+      style={{
+        width:
+          totalJogosDaAba > 0
+            ? `${(preenchidosDaAba / totalJogosDaAba) * 100}%`
+            : "0%",
+      }}
+    />
+  </div>
+</div>
         {/* Abas */}
         <div className="mb-6 flex gap-2 overflow-x-auto">
           {[
@@ -269,7 +341,9 @@ function getResultadoPalpite(match: Match) {
             >
               {fase.label}
             </button>
+            
           ))}
+          
         </div>
 
         {/* Rodadas */}
@@ -305,7 +379,7 @@ function getResultadoPalpite(match: Match) {
                 <div className="flex justify-between">
                   <TeamDisplay teamId={m.home_team_id} />
                   <input
-                    type="number"
+                    type="numeric"
                     className="h-12 w-16 text-gray-900 rounded-lg border border-gray-400 text-center font-bold"
                     value={palpites[m.id]?.home || ""}
                     onChange={(e) =>
@@ -317,7 +391,7 @@ function getResultadoPalpite(match: Match) {
                 <div className="flex justify-between">
                   <TeamDisplay teamId={m.away_team_id} />
                   <input
-                    type="number"
+                    type="numeric"
                     className="h-12 w-16 rounded-lg border text-gray-900 border-gray-400 text-center font-bold"
                     value={palpites[m.id]?.away || ""}
                     onChange={(e) =>
@@ -342,12 +416,19 @@ function getResultadoPalpite(match: Match) {
       </div>
 
       {/* Botão flutuante */}
-      <button
-        onClick={salvarTodosPalpites}
-        className="fixed bottom-5 left-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 rounded-2xl bg-green-600 py-4 text-lg font-black text-white shadow-2xl"
-      >
-        Salvar palpites
-      </button>
+<button
+  onClick={salvarTodosPalpites}
+  disabled={abaBloqueada}
+  className={`fixed bottom-5 left-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 rounded-2xl py-4 text-lg font-black text-white shadow-2xl ${
+    abaBloqueada
+      ? "cursor-not-allowed bg-gray-500"
+      : "bg-green-600 hover:bg-green-700"
+  }`}
+>
+  {abaBloqueada
+    ? "Etapa bloqueada"
+    : `Salvar palpites (${preenchidosDaAba}/${totalJogosDaAba})`}
+</button>
     </main>
   );
 }
