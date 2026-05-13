@@ -173,6 +173,76 @@ export default function Jogos() {
     );
   }
 
+  function calcularPontos(match: Match, palpite?: Palpite) {
+  if (
+    !palpite ||
+    palpite.home === "" ||
+    palpite.away === "" ||
+    match.home_score === null ||
+    match.away_score === null
+  ) {
+    return null;
+  }
+
+  const realHome = match.home_score;
+  const realAway = match.away_score;
+  const pickHome = Number(palpite.home);
+  const pickAway = Number(palpite.away);
+
+  if (realHome === pickHome && realAway === pickAway) {
+    return 5;
+  }
+
+  let pontos = 0;
+
+  const acertouVencedor =
+    (realHome > realAway && pickHome > pickAway) ||
+    (realHome < realAway && pickHome < pickAway) ||
+    (realHome === realAway && pickHome === pickAway);
+
+  if (acertouVencedor) pontos += 3;
+
+  if (realHome === pickHome || realAway === pickAway) pontos += 1;
+
+  return pontos;
+}
+
+function getResultadoPalpite(match: Match) {
+  const pontos = calcularPontos(match, palpites[match.id]);
+
+  if (pontos === null) return null;
+
+  if (pontos === 5) {
+    return {
+      texto: "Placar exato",
+      classe: "bg-green-100 text-green-800 border-green-300",
+      pontos,
+    };
+  }
+
+  if (pontos >= 3) {
+    return {
+      texto: "Acertou vencedor",
+      classe: "bg-emerald-100 text-emerald-800 border-emerald-300",
+      pontos,
+    };
+  }
+
+  if (pontos === 1) {
+    return {
+      texto: "Acerto parcial",
+      classe: "bg-yellow-100 text-yellow-800 border-yellow-300",
+      pontos,
+    };
+  }
+
+  return {
+    texto: "Errou",
+    classe: "bg-red-100 text-red-800 border-red-300",
+    pontos,
+  };
+}
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-green-700 via-emerald-600 to-yellow-400 p-6 pb-28">
       <div className="mx-auto max-w-5xl">
@@ -254,7 +324,17 @@ export default function Jogos() {
                       alterarPalpite(m.id, "away", e.target.value)
                     }
                   />
+                 
                 </div>
+                 {getResultadoPalpite(m) && (
+  <div
+    className={`mt-4 rounded-xl border px-4 py-3 text-center font-bold ${
+      getResultadoPalpite(m)!.classe
+    }`}
+  >
+    {getResultadoPalpite(m)!.texto}: +{getResultadoPalpite(m)!.pontos} pts
+  </div>
+)}
               </div>
             </div>
           ))}
