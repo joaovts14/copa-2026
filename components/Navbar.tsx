@@ -84,6 +84,12 @@ export default function Navbar() {
             Admin
           </Link>
         )}
+        <Link
+  href="/regras"
+  className="rounded-xl px-4 py-2 text-gray-700 hover:bg-green-100 hover:text-green-800"
+>
+  Regras
+</Link>
       </div>
     </nav>
   );
