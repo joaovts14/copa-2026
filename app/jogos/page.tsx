@@ -26,6 +26,7 @@ type Match = {
 type Palpite = {
   home: string;
   away: string;
+  predictedWinnerTeamId?: number | null;
 };
 
 export default function Jogos() {
@@ -69,10 +70,11 @@ export default function Jogos() {
         const mapa: Record<number, Palpite> = {};
 
         picksData?.forEach((p) => {
-          mapa[p.match_id] = {
-            home: String(p.home_score_pick),
-            away: String(p.away_score_pick),
-          };
+mapa[p.match_id] = {
+  home: String(p.home_score_pick),
+  away: String(p.away_score_pick),
+  predictedWinnerTeamId: p.predicted_winner_team_id,
+};
         });
 
         setPalpites(mapa);
@@ -129,12 +131,29 @@ const palpitesParaSalvar = matchesFiltrados.flatMap((m) => {
     return [];
   }
 
+  let predictedWinnerTeamId: number | null = null;
+
+if (isEliminatoria(m.stage)) {
+  if (Number(palpite.home) > Number(palpite.away)) {
+    predictedWinnerTeamId = m.home_team_id;
+  } else if (Number(palpite.home) < Number(palpite.away)) {
+    predictedWinnerTeamId = m.away_team_id;
+  } else {
+    predictedWinnerTeamId = palpite.predictedWinnerTeamId || null;
+
+    if (!predictedWinnerTeamId) {
+      return [];
+    }
+  }
+}
+
   return [
     {
       user_id: user.id,
       match_id: m.id,
       home_score_pick: Number(palpite.home),
       away_score_pick: Number(palpite.away),
+      predicted_winner_team_id: predictedWinnerTeamId,
     },
   ];
 });
@@ -282,7 +301,30 @@ const prazoDaAba = matchesFiltrados.length
   : null;
 
 const abaBloqueada = prazoDaAba ? prazoDaAba <= new Date() : false;
+function alterarClassificado(matchId: number, teamId: number) {
+  setPalpites((atual) => ({
+    ...atual,
+    [matchId]: {
+      home: atual[matchId]?.home || "",
+      away: atual[matchId]?.away || "",
+      predictedWinnerTeamId: teamId,
+    },
+  }));
+}
 
+function isEliminatoria(stage: string) {
+  return stage !== "groups";
+}
+
+function palpiteEmpatado(matchId: number) {
+  const p = palpites[matchId];
+
+  if (!p || p.home === "" || p.away === "") {
+    return false;
+  }
+
+  return Number(p.home) === Number(p.away);
+}
   return (
     <main className="min-h-screen bg-gradient-to-br from-green-700 via-emerald-600 to-yellow-400 p-6 pb-28">
       <div className="mx-auto max-w-5xl">
@@ -421,6 +463,39 @@ const abaBloqueada = prazoDaAba ? prazoDaAba <= new Date() : false;
                   />
                  
                 </div>
+                {isEliminatoria(m.stage) && palpiteEmpatado(m.id) && (
+  <div className="mt-4 rounded-xl bg-yellow-50 p-4">
+    <p className="mb-3 text-sm font-black text-yellow-800">
+      Quem passa de fase?
+    </p>
+
+    <div className="grid grid-cols-2 gap-2">
+      <button
+        type="button"
+        onClick={() => alterarClassificado(m.id, m.home_team_id)}
+        className={`rounded-lg border px-3 py-2 text-sm font-bold ${
+          palpites[m.id]?.predictedWinnerTeamId === m.home_team_id
+            ? "border-green-600 bg-green-100 text-green-800"
+            : "border-gray-300 bg-white text-gray-700"
+        }`}
+      >
+        {getTeam(m.home_team_id)?.name}
+      </button>
+
+      <button
+        type="button"
+        onClick={() => alterarClassificado(m.id, m.away_team_id)}
+        className={`rounded-lg border px-3 py-2 text-sm font-bold ${
+          palpites[m.id]?.predictedWinnerTeamId === m.away_team_id
+            ? "border-green-600 bg-green-100 text-green-800"
+            : "border-gray-300 bg-white text-gray-700"
+        }`}
+      >
+        {getTeam(m.away_team_id)?.name}
+      </button>
+    </div>
+  </div>
+)}
                  {getResultadoPalpite(m) && (
   <div
     className={`mt-4 rounded-xl border px-4 py-3 text-center font-bold ${
