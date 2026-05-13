@@ -175,7 +175,7 @@ const palpitesParaSalvar = matchesFiltrados.flatMap((m) => {
     );
   }
 
-  function calcularPontos(match: Match, palpite?: Palpite) {
+function calcularPontos(match: Match, palpite?: Palpite) {
   if (
     !palpite ||
     palpite.home === "" ||
@@ -191,20 +191,41 @@ const palpitesParaSalvar = matchesFiltrados.flatMap((m) => {
   const pickHome = Number(palpite.home);
   const pickAway = Number(palpite.away);
 
-  if (realHome === pickHome && realAway === pickAway) {
-    return 5;
-  }
-
   let pontos = 0;
 
-  const acertouVencedor =
-    (realHome > realAway && pickHome > pickAway) ||
-    (realHome < realAway && pickHome < pickAway) ||
-    (realHome === realAway && pickHome === pickAway);
+  // Placar exato
+  if (realHome === pickHome && realAway === pickAway) {
+    pontos = 10;
+  } else {
+    const acertouResultado =
+      (realHome > realAway && pickHome > pickAway) ||
+      (realHome < realAway && pickHome < pickAway) ||
+      (realHome === realAway && pickHome === pickAway);
 
-  if (acertouVencedor) pontos += 3;
+    if (acertouResultado) {
+      const saldoReal = realHome - realAway;
+      const saldoPalpite = pickHome - pickAway;
 
-  if (realHome === pickHome || realAway === pickAway) pontos += 1;
+      if (saldoReal === saldoPalpite) {
+        pontos = 7;
+      } else {
+        pontos = 5;
+      }
+    } else if (realHome === pickHome || realAway === pickAway) {
+      pontos = 2;
+    }
+  }
+
+  // 🔥 BONUS BRASIL
+  const homeTeam = getTeam(match.home_team_id);
+  const awayTeam = getTeam(match.away_team_id);
+
+  const temBrasil =
+    homeTeam?.name === "Brasil" || awayTeam?.name === "Brasil";
+
+  if (temBrasil && pontos > 0) {
+    pontos += 2;
+  }
 
   return pontos;
 }
