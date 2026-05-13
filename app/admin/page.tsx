@@ -28,6 +28,7 @@ type Resultado = {
 
 export default function Admin() {
   const supabase = createClient();
+  const [statusRodadas, setStatusRodadas] = useState<any[]>([]);
 
   const [teams, setTeams] = useState<Team[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
@@ -40,6 +41,12 @@ export default function Admin() {
 
   async function carregarDados() {
     setLoading(true);
+    const { data: statusData } = await supabase
+  .from("admin_rodadas_status")
+  .select("*")
+  .order("round");
+
+setStatusRodadas(statusData || []);
 
     const { data: teamsData } = await supabase.from("teams").select("*").order("name");
 
@@ -141,7 +148,64 @@ export default function Admin() {
             Preencha o placar real dos jogos para atualizar o ranking.
           </p>
         </header>
+<section className="mb-6 rounded-2xl bg-white p-6 shadow-xl">
+  <h2 className="text-2xl font-black text-gray-900">
+    Status de preenchimento
+  </h2>
 
+  <p className="mt-1 text-gray-600">
+    Veja quantas pessoas ainda faltam preencher cada rodada.
+  </p>
+
+  <div className="mt-5 grid gap-4 md:grid-cols-3">
+    {statusRodadas.map((r) => (
+      <div
+        key={`${r.stage}-${r.round}`}
+        className="rounded-2xl border border-gray-200 bg-gray-50 p-4"
+      >
+        <h3 className="text-lg font-black text-gray-900">
+          Rodada {r.round}
+        </h3>
+
+        <div className="mt-3 space-y-1 text-sm font-bold">
+          <p className="text-green-700">
+            ✅ Completos: {r.usuarios_completo}
+          </p>
+
+          <p className="text-red-700">
+            ❌ Faltando: {r.usuarios_faltando}
+          </p>
+
+          <p className="text-gray-700">
+            Jogos da rodada: {r.total_jogos}
+          </p>
+        </div>
+
+        {r.lista_faltando && r.lista_faltando.length > 0 && (
+          <div className="mt-4 rounded-xl bg-white p-3">
+            <p className="mb-2 text-sm font-black text-gray-900">
+              Quem falta:
+            </p>
+
+            <div className="space-y-2">
+              {r.lista_faltando.map((u: any) => (
+                <div
+                  key={u.nome}
+                  className="flex justify-between text-sm text-gray-700"
+                >
+                  <span>{u.nome}</span>
+                  <span className="font-bold text-red-600">
+                    faltam {u.faltando}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    ))}
+  </div>
+</section>
         {loading && (
           <div className="rounded-xl bg-white p-6 text-center font-bold shadow">
             Carregando...

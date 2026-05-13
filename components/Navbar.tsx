@@ -12,7 +12,7 @@ export default function Navbar() {
   const [nome, setNome] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
 
-  const ADMIN_EMAIL = "seuemail@gmail.com";
+  const ADMIN_EMAIL = "joaovitortobias@hotmail.com";
 
   useEffect(() => {
     async function carregarUsuario() {
