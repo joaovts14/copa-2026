@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "../../lib/supabase/client";
 import Navbar from "../../components/Navbar";
+import { useRouter } from "next/navigation";
 
 type Team = {
   id: number;
@@ -34,10 +35,25 @@ export default function Admin() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [resultados, setResultados] = useState<Record<number, Resultado>>({});
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const ADMIN_EMAIL = "joaovitortobias@hotmail.com";
+  const [autorizado, setAutorizado] = useState(false);
+useEffect(() => {
+  async function verificarAdmin() {
+    const { data } = await supabase.auth.getUser();
+    const user = data.user;
 
-  useEffect(() => {
+    if (!user || user.email !== ADMIN_EMAIL) {
+      router.push("/jogos");
+      return;
+    }
+
+    setAutorizado(true);
     carregarDados();
-  }, []);
+  }
+
+  verificarAdmin();
+}, []);
 
   async function carregarDados() {
     setLoading(true);
@@ -134,6 +150,16 @@ setStatusRodadas(statusData || []);
     alert("Resultado removido!");
     carregarDados();
   }
+
+  if (!autorizado) {
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-green-700 via-emerald-600 to-yellow-400 p-6">
+      <div className="rounded-2xl bg-white p-6 font-bold text-gray-900 shadow-xl">
+        Verificando permissão...
+      </div>
+    </main>
+  );
+}
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-green-700 via-emerald-600 to-yellow-400 p-6">
