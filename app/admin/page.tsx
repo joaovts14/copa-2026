@@ -206,7 +206,27 @@ setStatusRodadas(statusData || []);
             Jogos da rodada: {r.total_jogos}
           </p>
         </div>
+{r.lista_preencheu && r.lista_preencheu.length > 0 && (
+  <div className="mt-4 rounded-xl bg-green-50 p-3">
+    <p className="mb-2 text-sm font-black text-green-900">
+      Quem preencheu:
+    </p>
 
+    <div className="space-y-2">
+      {r.lista_preencheu.map((u: any) => (
+        <div
+          key={u.nome}
+          className="flex justify-between text-sm text-gray-700"
+        >
+          <span>{u.nome}</span>
+          <span className="font-bold text-green-700">
+            completo
+          </span>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
         {r.lista_faltando && r.lista_faltando.length > 0 && (
           <div className="mt-4 rounded-xl bg-white p-3">
             <p className="mb-2 text-sm font-black text-gray-900">
