@@ -98,19 +98,22 @@ export default function Palpites() {
                   </div>
                 </div>
 
-                <div className="divide-y rounded-xl border border-gray-200">
-                  {lista.map((p) => (
-                    <div
-                      key={p.id}
-                      className="flex items-center justify-between p-3 text-sm"
-                    >
-                      <span className="font-bold text-gray-800">{p.nome}</span>
-                      <span className="rounded-lg bg-gray-100 px-3 py-1 font-black text-gray-900">
-                        {p.home_score_pick} x {p.away_score_pick}
-                      </span>
-                    </div>
-                  ))}
-                </div>
+               <div className="divide-y rounded-xl border border-gray-200">
+  {lista.map((p) => (
+    <div
+      key={p.id}
+      className="flex items-center justify-between p-4"
+    >
+      <span className="font-semibold text-gray-900">
+        {p.nome}
+      </span>
+
+      <span className="rounded-lg bg-green-50 px-4 py-2 text-lg font-black text-green-700">
+        {p.home_score_pick} x {p.away_score_pick}
+      </span>
+    </div>
+  ))}
+</div>
               </section>
             );
           })}
