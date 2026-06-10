@@ -129,8 +129,8 @@ function getClasses(resultado: string | null) {
 
     case "resultado":
       return `
-        border-emerald-300
-        bg-emerald-50
+        border-blue-300
+        bg-blue-50
       `;
 
     case "umTime":
