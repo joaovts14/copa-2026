@@ -112,14 +112,30 @@ export default function Palpites() {
   return "erro";
 }
 
-function getClasses(resultado: string | null) {
+function getScoreClass(resultado: string | null) {
+  switch (resultado) {
+    case "exact":
+      return "text-green-700";
 
-      return "border-green-500 bg-green-50";
+    case "saldo":
+      return "text-green-600";
 
- 
+    case "resultado":
+      return "text-emerald-600";
+
+    case "umTime":
+      return "text-yellow-700";
+
+    case "erro":
+      return "text-red-600";
+
+    default:
+      return "text-gray-700";
+  }
 }
 
 function getEmoji(resultado: string | null) {
+    resultado = "teste"
   switch (resultado) {
     case "exact":
       return "🏆";
@@ -230,7 +246,7 @@ function getEmoji(resultado: string | null) {
                     
                     <div
                       key={p.id}
-className={`flex items-center justify-between gap-3 rounded-xl border-2 p-3 shadow-sm ${getClasses(resultado)}`}
+className={`flex items-center justify-between gap-3 rounded-xl border-2 p-3 shadow-sm `}
                     >
                       <div className="flex min-w-0 items-center gap-3">
                         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-100 text-sm font-black text-green-800">
@@ -242,9 +258,11 @@ className={`flex items-center justify-between gap-3 rounded-xl border-2 p-3 shad
                         </span>
                       </div>
 
-                    <span className="shrink-0 text-lg font-black text-green-700">
-                    {getEmoji(resultado)} {p.home_score_pick} x {p.away_score_pick}
-                    </span>
+<span
+  className={`shrink-0 text-lg font-black ${getScoreClass(resultado)}`}
+>
+  {p.home_score_pick} x {p.away_score_pick}
+</span>
                     </div>
                     );
 })}
