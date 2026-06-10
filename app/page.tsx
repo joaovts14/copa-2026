@@ -30,7 +30,23 @@ export default function Home() {
 
     verificarSessao();
   }, []);
+async function recuperarSenha() {
+  if (!email) {
+    alert("Informe seu e-mail para recuperar a senha.");
+    return;
+  }
 
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${window.location.origin}/resetar-senha`,
+  });
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  alert("Enviamos um link de recuperação para seu e-mail.");
+}
   async function entrar() {
     if (!email || !password) {
       alert("Informe e-mail e senha.");
@@ -164,6 +180,15 @@ export default function Home() {
           >
             {modoCadastro ? "Já tenho conta" : "Criar nova conta"}
           </button>
+          {!modoCadastro && (
+  <button
+    type="button"
+    onClick={recuperarSenha}
+    className="text-sm font-bold text-green-700 hover:underline"
+  >
+    Esqueci minha senha
+  </button>
+)}
         </div>
       </div>
     </main>

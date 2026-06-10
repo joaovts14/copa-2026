@@ -30,7 +30,7 @@ type Resultado = {
 export default function Admin() {
   const supabase = createClient();
   const [statusRodadas, setStatusRodadas] = useState<any[]>([]);
-
+  const [releases, setReleases] = useState<any[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
   const [resultados, setResultados] = useState<Record<number, Resultado>>({});
@@ -61,6 +61,14 @@ useEffect(() => {
   .from("admin_rodadas_status")
   .select("*")
   .order("round");
+
+  const { data: releasesData } = await supabase
+  .from("releases")
+  .select("*")
+  .eq("stage", "groups")
+  .order("round");
+
+setReleases(releasesData || []);
 
 setStatusRodadas(statusData || []);
 
@@ -105,6 +113,28 @@ setStatusRodadas(statusData || []);
       },
     }));
   }
+
+  async function alterarLiberacao(stage: string, round: number, released: boolean) {
+  const { error } = await supabase
+    .from("releases")
+    .upsert(
+      {
+        stage,
+        round,
+        released,
+      },
+      {
+        onConflict: "stage,round",
+      }
+    );
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  carregarDados();
+}
 
   async function salvarResultado(matchId: number) {
     const resultado = resultados[matchId];
@@ -174,6 +204,57 @@ setStatusRodadas(statusData || []);
             Preencha o placar real dos jogos para atualizar o ranking.
           </p>
         </header>
+        <section className="mb-6 rounded-2xl bg-white p-6 shadow-xl">
+  <h2 className="text-2xl font-black text-gray-900">
+    Liberação dos palpites
+  </h2>
+
+  <p className="mt-1 text-gray-600">
+    Controle quando os participantes poderão ver os palpites uns dos outros.
+  </p>
+
+  <div className="mt-5 grid gap-4 md:grid-cols-3">
+    {[1, 2, 3].map((round) => {
+      const release = releases.find(
+        (r) => r.stage === "groups" && r.round === round
+      );
+
+      const liberado = release?.released === true;
+
+      return (
+        <div
+          key={round}
+          className="rounded-2xl border border-gray-200 bg-gray-50 p-4"
+        >
+          <h3 className="text-lg font-black text-gray-900">
+            Rodada {round}
+          </h3>
+
+          <p
+            className={`mt-2 text-sm font-bold ${
+              liberado ? "text-green-700" : "text-red-700"
+            }`}
+          >
+            {liberado ? "Liberado" : "Bloqueado"}
+          </p>
+
+          <button
+            onClick={() =>
+              alterarLiberacao("groups", round, !liberado)
+            }
+            className={`mt-4 w-full rounded-xl px-4 py-3 font-black text-white ${
+              liberado
+                ? "bg-red-600 hover:bg-red-700"
+                : "bg-green-600 hover:bg-green-700"
+            }`}
+          >
+            {liberado ? "Bloquear" : "Liberar"}
+          </button>
+        </div>
+      );
+    })}
+  </div>
+</section>
 <section className="mb-6 rounded-2xl bg-white p-6 shadow-xl">
   <h2 className="text-2xl font-black text-gray-900">
     Status de preenchimento
