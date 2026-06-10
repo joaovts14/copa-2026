@@ -112,6 +112,47 @@ export default function Palpites() {
   return "erro";
 }
 
+function getClasses(resultado: string | null) {
+  switch (resultado) {
+    case "exact":
+      return `
+        border-green-600
+        bg-green-100
+        shadow-green-100
+      `;
+
+    case "saldo":
+      return `
+        border-green-400
+        bg-green-50
+      `;
+
+    case "resultado":
+      return `
+        border-emerald-300
+        bg-emerald-50
+      `;
+
+    case "umTime":
+      return `
+        border-yellow-300
+        bg-yellow-50
+      `;
+
+    case "erro":
+      return `
+        border-red-300
+        bg-red-50
+      `;
+
+    default:
+      return `
+        border-gray-200
+        bg-white
+      `;
+  }
+}
+
 function getScoreClass(resultado: string | null) {
   switch (resultado) {
     case "exact":
@@ -154,6 +195,28 @@ function getEmoji(resultado: string | null) {
 
     default:
       return "";
+  }
+}
+
+function getAvatarClasses(resultado: string | null) {
+  switch (resultado) {
+    case "exact":
+      return "bg-green-600 text-white";
+
+    case "saldo":
+      return "bg-green-200 text-green-900";
+
+    case "resultado":
+      return "bg-emerald-200 text-emerald-900";
+
+    case "umTime":
+      return "bg-yellow-200 text-yellow-900";
+
+    case "erro":
+      return "bg-red-200 text-red-900";
+
+    default:
+      return "bg-green-100 text-green-800";
   }
 }
   
@@ -245,12 +308,22 @@ function getEmoji(resultado: string | null) {
   return (
                     
                     <div
-                      key={p.id}
-className={`flex items-center justify-between gap-3 rounded-xl border-2 p-3 shadow-sm `}
-                    >
+  key={p.id}
+  className={`
+    flex items-center justify-between gap-3
+    rounded-xl border-2 p-3 shadow-sm
+    transition-all duration-200
+    ${getClasses(resultado)}
+  `}
+>
                       <div className="flex min-w-0 items-center gap-3">
-                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-100 text-sm font-black text-green-800">
-                          {getIniciais(p.nome)}
+<span
+  className={`
+    flex h-10 w-10 shrink-0 items-center justify-center
+    rounded-full text-sm font-black
+    ${getAvatarClasses(resultado)}
+  `}
+>                          {getIniciais(p.nome)}
                         </span>
 
                         <span className="truncate font-bold text-gray-900">
