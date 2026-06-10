@@ -156,10 +156,10 @@ function getClasses(resultado: string | null) {
 function getScoreClass(resultado: string | null) {
   switch (resultado) {
     case "exact":
-      return "text-green-800";
+      return "text-green-900";
 
     case "saldo":
-      return "text-green-300";
+      return "text-green-600";
 
     case "resultado":
       return "text-blue-600";
