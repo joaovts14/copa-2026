@@ -113,31 +113,32 @@ export default function Palpites() {
 }
 
 function getClasses(resultado: string | null) {
-  switch (resultado) {
-    case "exact":
+
       return "border-green-500 bg-green-50";
 
-    case "saldo":
-      return "border-lime-500 bg-lime-50";
-
-    case "resultado":
-      return "border-yellow-500 bg-yellow-50";
-
-    case "umTime":
-      return "border-orange-500 bg-orange-50";
-
-    case "erro":
-      return "border-red-500 bg-red-50";
-
-    default:
-      return "border-gray-200 bg-white";
-  }
+ 
 }
 
 function getEmoji(resultado: string | null) {
+  switch (resultado) {
+    case "exact":
+      return "🏆";
 
+    case "saldo":
+      return "🟢";
+
+    case "resultado":
+      return "🟡";
+
+    case "umTime":
+      return "🟠";
+
+    case "erro":
+      return "🔴";
+
+    default:
       return "";
-  
+  }
 }
   
   const jogos = palpites.reduce<Record<number, PublicPick[]>>((acc, p) => {
