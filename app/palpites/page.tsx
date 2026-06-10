@@ -135,25 +135,9 @@ function getClasses(resultado: string | null) {
 }
 
 function getEmoji(resultado: string | null) {
-  switch (resultado) {
-    case "exact":
-      return "🏆";
 
-    case "saldo":
-      return "🟢";
-
-    case "resultado":
-      return "🟡";
-
-    case "umTime":
-      return "🟠";
-
-    case "erro":
-      return "🔴";
-
-    default:
       return "";
-  }
+  
 }
   
   const jogos = palpites.reduce<Record<number, PublicPick[]>>((acc, p) => {
