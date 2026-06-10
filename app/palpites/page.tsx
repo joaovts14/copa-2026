@@ -17,6 +17,8 @@ type PublicPick = {
   away_flag: string | null;
   home_score_pick: number;
   away_score_pick: number;
+    real_home_score : number;
+  real_away_score : number;
 };
 
 export default function Palpites() {
@@ -50,6 +52,110 @@ export default function Palpites() {
       .toUpperCase();
   }
 
+  function calcularResultado(p: PublicPick) {
+  if (
+    p.real_home_score === null ||
+    p.real_away_score === null
+  ) {
+    return null;
+  }
+
+  const realHome = p.real_home_score;
+  const realAway = p.real_away_score;
+
+  const pickHome = p.home_score_pick;
+  const pickAway = p.away_score_pick;
+
+  // placar exato
+  if (
+    realHome === pickHome &&
+    realAway === pickAway
+  ) {
+    return "exact";
+  }
+
+  const realResultado =
+    realHome > realAway
+      ? "home"
+      : realHome < realAway
+      ? "away"
+      : "draw";
+
+  const pickResultado =
+    pickHome > pickAway
+      ? "home"
+      : pickHome < pickAway
+      ? "away"
+      : "draw";
+
+  const saldoReal = realHome - realAway;
+  const saldoPick = pickHome - pickAway;
+
+  if (
+    realResultado === pickResultado &&
+    saldoReal === saldoPick
+  ) {
+    return "saldo";
+  }
+
+  if (realResultado === pickResultado) {
+    return "resultado";
+  }
+
+  if (
+    realHome === pickHome ||
+    realAway === pickAway
+  ) {
+    return "umTime";
+  }
+
+  return "erro";
+}
+
+function getClasses(resultado: string | null) {
+  switch (resultado) {
+    case "exact":
+      return "border-green-500 bg-green-50";
+
+    case "saldo":
+      return "border-lime-500 bg-lime-50";
+
+    case "resultado":
+      return "border-yellow-500 bg-yellow-50";
+
+    case "umTime":
+      return "border-orange-500 bg-orange-50";
+
+    case "erro":
+      return "border-red-500 bg-red-50";
+
+    default:
+      return "border-gray-200 bg-white";
+  }
+}
+
+function getEmoji(resultado: string | null) {
+  switch (resultado) {
+    case "exact":
+      return "🏆";
+
+    case "saldo":
+      return "🟢";
+
+    case "resultado":
+      return "🟡";
+
+    case "umTime":
+      return "🟠";
+
+    case "erro":
+      return "🔴";
+
+    default:
+      return "";
+  }
+}
+  
   const jogos = palpites.reduce<Record<number, PublicPick[]>>((acc, p) => {
     if (!acc[p.match_id]) acc[p.match_id] = [];
     acc[p.match_id].push(p);
@@ -132,10 +238,14 @@ export default function Palpites() {
 </div>
 
                 <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                  {lista.map((p) => (
+                  {lista.map((p) => {
+  const resultado = calcularResultado(p);
+
+  return (
+                    
                     <div
                       key={p.id}
-                      className="flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white p-3 shadow-sm"
+className={`flex items-center justify-between gap-3 rounded-xl border-2 p-3 shadow-sm ${getClasses(resultado)}`}
                     >
                       <div className="flex min-w-0 items-center gap-3">
                         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-100 text-sm font-black text-green-800">
@@ -147,11 +257,12 @@ export default function Palpites() {
                         </span>
                       </div>
 
-                      <span className="shrink-0 text-lg font-black text-green-700">
-                        {p.home_score_pick} x {p.away_score_pick}
-                      </span>
+                    <span className="shrink-0 text-lg font-black text-green-700">
+                    {getEmoji(resultado)} {p.home_score_pick} x {p.away_score_pick}
+                    </span>
                     </div>
-                  ))}
+                    );
+})}
                 </div>
               </div>
             );
