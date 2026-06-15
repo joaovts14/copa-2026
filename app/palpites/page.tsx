@@ -173,6 +173,11 @@ function getPreResultScoreClass(p: PublicPick) {
       return "text-gray-900";
   }
 }
+function getOrdemPalpite(p: PublicPick) {
+  if (p.home_score_pick > p.away_score_pick) return 0; // mandante
+  if (p.home_score_pick === p.away_score_pick) return 1; // empate
+  return 2; // visitante
+}
 
   function getScoreClass(resultado: string | null) {
     switch (resultado) {
@@ -226,7 +231,21 @@ function getPreResultScoreClass(p: PublicPick) {
             {Object.entries(jogos).map(([matchId, lista], index) => {
               const jogo = lista[0];
               const aberto = jogosAbertos[Number(matchId)] === true;
+const listaOrdenada = [...lista].sort((a, b) => {
+  const ordemA = getOrdemPalpite(a);
+  const ordemB = getOrdemPalpite(b);
 
+  if (ordemA !== ordemB) {
+    return ordemA - ordemB;
+  }
+
+  // dentro do grupo ordena pelo placar
+  if (a.home_score_pick !== b.home_score_pick) {
+    return a.home_score_pick - b.home_score_pick;
+  }
+
+  return a.away_score_pick - b.away_score_pick;
+});
               return (
                 <div
                   key={matchId}
@@ -289,7 +308,7 @@ function getPreResultScoreClass(p: PublicPick) {
                   {aberto && (
                     <div className="px-5 pb-5">
                       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-                        {lista.map((p) => {
+                        {listaOrdenada.map((p) => {
                           const resultado = calcularResultado(p);
 
                           return (
