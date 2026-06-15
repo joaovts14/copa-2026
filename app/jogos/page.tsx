@@ -254,7 +254,7 @@ function getResultadoPalpite(match: Match) {
 
   if (pontos === null) return null;
 
-  if (pontos === 5) {
+  if (pontos >= 10) {
     return {
       texto: "Placar exato",
       classe: "bg-green-100 text-green-800 border-green-300",
@@ -262,18 +262,26 @@ function getResultadoPalpite(match: Match) {
     };
   }
 
-  if (pontos >= 3) {
+  if (pontos >= 7) {
     return {
-      texto: "Acertou vencedor",
+      texto: "Vencedor + saldo",
       classe: "bg-emerald-100 text-emerald-800 border-emerald-300",
       pontos,
     };
   }
 
-  if (pontos === 1) {
+  if (pontos >= 5) {
+    return {
+      texto: "Acertou vencedor",
+      classe: "bg-yellow-100 text-yellow-800 border-yellow-300",
+      pontos,
+    };
+  }
+
+  if (pontos >= 2) {
     return {
       texto: "Acerto parcial",
-      classe: "bg-yellow-100 text-yellow-800 border-yellow-300",
+      classe: "bg-orange-100 text-orange-800 border-orange-300",
       pontos,
     };
   }
