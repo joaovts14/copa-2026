@@ -105,7 +105,7 @@ export default function Palpites() {
       case "saldo":
         return "border-green-400 bg-green-50";
       case "resultado":
-        return "border-emerald-300 bg-emerald-50";
+        return "border-blue-300 bg-blue-50";
       case "umTime":
         return "border-yellow-300 bg-yellow-50";
       case "erro":
