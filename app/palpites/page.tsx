@@ -262,87 +262,42 @@ export default function Palpites() {
 
                   {aberto && (
                     <div className="px-5 pb-5">
-                      <div className="grid gap-4 md:grid-cols-3">
-                        {[
-                          {
-                            titulo: `Vitória ${jogo.home_team}`,
-                            total: palpitesHome.length,
-                            itens: palpitesHome,
-                            cor: "border-green-300 bg-green-50",
-                          },
-                          {
-                            titulo: "Empate",
-                            total: palpitesDraw.length,
-                            itens: palpitesDraw,
-                            cor: "border-yellow-300 bg-yellow-50",
-                          },
-                          {
-                            titulo: `Vitória ${jogo.away_team}`,
-                            total: palpitesAway.length,
-                            itens: palpitesAway,
-                            cor: "border-blue-300 bg-blue-50",
-                          },
-                        ].map((grupo) => (
-                          <div
-                            key={grupo.titulo}
-                            className={`rounded-2xl border-2 p-4 ${grupo.cor}`}
-                          >
-                            <div className="mb-3 flex items-center justify-between gap-2">
-                              <h3 className="text-sm font-black text-gray-900">
-                                {grupo.titulo}
-                              </h3>
+                      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+  {lista.map((p) => {
+    const resultado = calcularResultado(p);
 
-                              <span className="rounded-full bg-white px-3 py-1 text-xs font-black text-gray-700">
-                                {grupo.total}
-                              </span>
-                            </div>
+    return (
+      <div
+        key={p.id}
+        className={`flex items-center justify-between gap-3 rounded-xl border-2 p-3 shadow-sm transition-all duration-200 ${getClasses(
+          resultado
+        )}`}
+      >
+        <div className="flex min-w-0 items-center gap-3">
+          <span
+            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-black ${getAvatarClasses(
+              resultado
+            )}`}
+          >
+            {getIniciais(p.nome)}
+          </span>
 
-                            {grupo.itens.length === 0 && (
-                              <p className="text-sm font-semibold text-gray-500">
-                                Ninguém apostou
-                              </p>
-                            )}
+          <span className="truncate text-sm font-bold text-gray-900">
+            {p.nome}
+          </span>
+        </div>
 
-                            <div className="flex flex-col gap-2">
-                              {grupo.itens.map((p) => {
-                                const resultado = calcularResultado(p);
-
-                                return (
-                                  <div
-                                    key={p.id}
-                                    className={`flex items-center justify-between gap-2 rounded-xl border-2 p-2 shadow-sm ${getClasses(
-                                      resultado
-                                    )}`}
-                                  >
-                                    <div className="flex min-w-0 items-center gap-2">
-                                      <span
-                                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-black ${getAvatarClasses(
-                                          resultado
-                                        )}`}
-                                      >
-                                        {getIniciais(p.nome)}
-                                      </span>
-
-                                      <span className="truncate text-sm font-bold text-gray-900">
-                                        {p.nome}
-                                      </span>
-                                    </div>
-
-                                    <span
-                                      className={`shrink-0 text-sm font-black ${getScoreClass(
-                                        resultado
-                                      )}`}
-                                    >
-                                      {p.home_score_pick} x{" "}
-                                      {p.away_score_pick}
-                                    </span>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+        <span
+          className={`shrink-0 text-base font-black ${getScoreClass(
+            resultado
+          )}`}
+        >
+          {p.home_score_pick} x {p.away_score_pick}
+        </span>
+      </div>
+    );
+  })}
+</div>
                     </div>
                   )}
                 </div>
