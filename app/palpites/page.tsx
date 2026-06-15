@@ -60,12 +60,6 @@ export default function Palpites() {
       .toUpperCase();
   }
 
-  function getGrupoPalpite(p: PublicPick) {
-    if (p.home_score_pick > p.away_score_pick) return "home";
-    if (p.home_score_pick < p.away_score_pick) return "away";
-    return "draw";
-  }
-
   function calcularResultado(p: PublicPick) {
     if (p.real_home_score === null || p.real_away_score === null) {
       return null;
@@ -134,7 +128,7 @@ export default function Palpites() {
       case "erro":
         return "bg-red-200 text-red-900";
       default:
-        return "bg-green-100 text-green-800";
+        return "bg-gray-100 text-gray-800";
     }
   }
 
@@ -190,16 +184,6 @@ export default function Palpites() {
             {Object.entries(jogos).map(([matchId, lista], index) => {
               const jogo = lista[0];
               const aberto = jogosAbertos[Number(matchId)] === true;
-
-              const palpitesHome = lista.filter(
-                (p) => getGrupoPalpite(p) === "home"
-              );
-              const palpitesDraw = lista.filter(
-                (p) => getGrupoPalpite(p) === "draw"
-              );
-              const palpitesAway = lista.filter(
-                (p) => getGrupoPalpite(p) === "away"
-              );
 
               return (
                 <div
@@ -263,41 +247,41 @@ export default function Palpites() {
                   {aberto && (
                     <div className="px-5 pb-5">
                       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-  {lista.map((p) => {
-    const resultado = calcularResultado(p);
+                        {lista.map((p) => {
+                          const resultado = calcularResultado(p);
 
-    return (
-      <div
-        key={p.id}
-        className={`flex items-center justify-between gap-3 rounded-xl border-2 p-3 shadow-sm transition-all duration-200 ${getClasses(
-          resultado
-        )}`}
-      >
-        <div className="flex min-w-0 items-center gap-3">
-          <span
-            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-black ${getAvatarClasses(
-              resultado
-            )}`}
-          >
-            {getIniciais(p.nome)}
-          </span>
+                          return (
+                            <div
+                              key={p.id}
+                              className={`flex items-center justify-between gap-3 rounded-xl border-2 p-3 shadow-sm transition-all duration-200 ${getClasses(
+                                resultado
+                              )}`}
+                            >
+                              <div className="flex min-w-0 items-center gap-3">
+                                <span
+                                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-black ${getAvatarClasses(
+                                    resultado
+                                  )}`}
+                                >
+                                  {getIniciais(p.nome)}
+                                </span>
 
-          <span className="truncate text-sm font-bold text-gray-900">
-            {p.nome}
-          </span>
-        </div>
+                                <span className="truncate text-sm font-bold text-gray-900">
+                                  {p.nome}
+                                </span>
+                              </div>
 
-        <span
-          className={`shrink-0 text-base font-black ${getScoreClass(
-            resultado
-          )}`}
-        >
-          {p.home_score_pick} x {p.away_score_pick}
-        </span>
-      </div>
-    );
-  })}
-</div>
+                              <span
+                                className={`shrink-0 text-base font-black ${getScoreClass(
+                                  resultado
+                                )}`}
+                              >
+                                {p.home_score_pick} x {p.away_score_pick}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   )}
                 </div>
