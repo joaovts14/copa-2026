@@ -231,6 +231,9 @@ function getOrdemPalpite(p: PublicPick) {
             {Object.entries(jogos).map(([matchId, lista], index) => {
               const jogo = lista[0];
               const aberto = jogosAbertos[Number(matchId)] === true;
+              const finalizado =
+  jogo.real_home_score !== null &&
+  jogo.real_away_score !== null;
 const listaOrdenada = [...lista].sort((a, b) => {
   const ordemA = getOrdemPalpite(a);
   const ordemB = getOrdemPalpite(b);
@@ -268,6 +271,11 @@ const listaOrdenada = [...lista].sort((a, b) => {
                       </span>
 
                       <div className="flex items-center justify-center gap-4 text-lg font-black text-gray-900">
+{finalizado && (
+  <span className="rounded-full bg-green-600 px-3 py-1 text-xs font-black text-white">
+    FINALIZADO • {jogo.real_home_score} x {jogo.real_away_score}
+  </span>
+)}
                         <div className="flex items-center gap-2">
                           {jogo.home_flag && (
                             <img
