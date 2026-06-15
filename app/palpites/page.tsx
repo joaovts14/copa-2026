@@ -111,7 +111,7 @@ export default function Palpites() {
       case "erro":
         return "border-red-300 bg-red-50";
       default:
-        return "border-gray-200 bg-white";
+        return "";
     }
   }
 
@@ -131,6 +131,48 @@ export default function Palpites() {
         return "bg-gray-100 text-gray-800";
     }
   }
+
+  function getTipoPalpite(p: PublicPick) {
+  if (p.home_score_pick > p.away_score_pick) return "home";
+  if (p.home_score_pick < p.away_score_pick) return "away";
+  return "draw";
+}
+
+function getPreResultClasses(p: PublicPick) {
+  const tipo = getTipoPalpite(p);
+
+  switch (tipo) {
+    case "home":
+      return "border-slate-400 bg-slate-50";
+
+    case "draw":
+      return "border-violet-300 bg-violet-50";
+
+    case "away":
+      return "border-cyan-300 bg-cyan-50";
+
+    default:
+      return "border-gray-200 bg-white";
+  }
+}
+
+function getPreResultScoreClass(p: PublicPick) {
+  const tipo = getTipoPalpite(p);
+
+  switch (tipo) {
+    case "home":
+      return "text-slate-800";
+
+    case "draw":
+      return "text-violet-700";
+
+    case "away":
+      return "text-cyan-800";
+
+    default:
+      return "text-gray-900";
+  }
+}
 
   function getScoreClass(resultado: string | null) {
     switch (resultado) {
@@ -253,9 +295,9 @@ export default function Palpites() {
                           return (
                             <div
                               key={p.id}
-                              className={`flex items-center justify-between gap-3 rounded-xl border-2 p-3 shadow-sm transition-all duration-200 ${getClasses(
-                                resultado
-                              )}`}
+className={`flex items-center justify-between gap-3 rounded-xl border-2 p-3 shadow-sm transition-all duration-200 ${
+  resultado === null ? getPreResultClasses(p) : getClasses(resultado)
+}`}
                             >
                               <div className="flex min-w-0 items-center gap-3">
                                 <span
@@ -272,9 +314,9 @@ export default function Palpites() {
                               </div>
 
                               <span
-                                className={`shrink-0 text-base font-black ${getScoreClass(
-                                  resultado
-                                )}`}
+                               className={`shrink-0 text-base font-black ${
+  resultado === null ? getPreResultScoreClass(p) : getScoreClass(resultado)
+}`}
                               >
                                 {p.home_score_pick} x {p.away_score_pick}
                               </span>
