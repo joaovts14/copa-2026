@@ -271,11 +271,7 @@ const listaOrdenada = [...lista].sort((a, b) => {
                       </span>
 
                       <div className="flex items-center justify-center gap-4 text-lg font-black text-gray-900">
-{finalizado && (
-  <span className="rounded-full bg-green-600 px-3 py-1 text-xs font-black text-white">
-    FINALIZADO • {jogo.real_home_score} x {jogo.real_away_score}
-  </span>
-)}
+
                         <div className="flex items-center gap-2">
                           {jogo.home_flag && (
                             <img
@@ -299,6 +295,11 @@ const listaOrdenada = [...lista].sort((a, b) => {
                             />
                           )}
                         </div>
+                        {finalizado && (
+  <span className="rounded-full bg-green-600 px-3 py-1 text-xs font-black text-white">
+    FINALIZADO • {jogo.real_home_score} x {jogo.real_away_score}
+  </span>
+)}
                       </div>
 
                       <div className="flex items-center justify-center gap-3 md:justify-end">
