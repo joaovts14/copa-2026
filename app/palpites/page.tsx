@@ -203,10 +203,10 @@ export default function Palpites() {
     }, {});
 
     const jogosOrdenados = Object.entries(jogos).sort(
-  (a, b) =>
-    new Date(a[1][0].match_date).getTime() -
-    new Date(b[1][0].match_date).getTime()
-);
+        (a, b) =>
+            new Date(a[1][0].match_date).getTime() -
+            new Date(b[1][0].match_date).getTime()
+    );
 
     return (
         <main className="min-h-screen bg-gradient-to-br from-green-700 via-emerald-600 to-yellow-400 p-6">
@@ -234,7 +234,7 @@ export default function Palpites() {
 
                 {!loading && Object.keys(jogos).length > 0 && (
                     <section className="overflow-hidden rounded-2xl bg-white shadow-xl">
-                      {jogosOrdenados.map(([matchId, lista], index) => {
+                        {jogosOrdenados.map(([matchId, lista], index) => {
                             const jogo = lista[0];
                             const aberto = jogosAbertos[Number(matchId)] === true;
                             const finalizado =
@@ -266,56 +266,26 @@ export default function Palpites() {
                                         className="w-full p-5 text-left hover:bg-gray-50"
                                     >
                                         <div className="grid items-center gap-3 md:grid-cols-[180px_1fr_auto]">
-                                            <span className="text-sm font-bold text-gray-500">
-                                                {new Date(jogo.match_date).toLocaleString("pt-BR", {
-                                                    day: "2-digit",
-                                                    month: "2-digit",
-                                                    year: "numeric",
-                                                    hour: "2-digit",
-                                                    minute: "2-digit",
-                                                })}
+                                            <span>
+                                                Data/Hora
                                             </span>
 
-                                            <div className="flex items-center justify-center gap-4 text-lg font-black text-gray-900">
-
-                                                <div className="flex items-center gap-2">
-                                                    {jogo.home_flag && (
-                                                        <img
-                                                            src={jogo.home_flag}
-                                                            alt={jogo.home_team}
-                                                            className="h-5 w-7 rounded object-cover md:h-6 md:w-9"
-                                                        />
-                                                    )}
-                                                    <span>{jogo.home_team}</span>
+                                            <div>
+                                                <div className="flex items-center justify-center gap-4">
+                                                    {/* Times */}
                                                 </div>
 
-                                                <span className="text-gray-500">x</span>
-
-                                                <div className="flex items-center gap-2">
-                                                    <span>{jogo.away_team}</span>
-                                                    {jogo.away_flag && (
-                                                        <img
-                                                            src={jogo.away_flag}
-                                                            alt={jogo.away_team}
-                                                            className="h-5 w-7 rounded object-cover md:h-6 md:w-9"
-                                                        />
-                                                    )}
-                                                </div>
                                                 {finalizado && (
-                                                    <span className="rounded-full bg-green-600 px-3 py-1 text-xs font-black text-white">
-                                                        FINALIZADO • {jogo.real_home_score} x {jogo.real_away_score}
-                                                    </span>
+                                                    <div className="mt-2 text-center">
+                                                        <span className="inline-flex rounded-full bg-green-600 px-3 py-1 text-xs font-black text-white">
+                                                            FINALIZADO • {jogo.real_home_score} x {jogo.real_away_score}
+                                                        </span>
+                                                    </div>
                                                 )}
                                             </div>
 
-                                            <div className="flex items-center justify-center gap-3 md:justify-end">
-                                                <span className="rounded-full bg-green-100 px-3 py-1 text-sm font-black text-green-800">
-                                                    {lista.length} palpites
-                                                </span>
-
-                                                <span className="text-2xl font-black text-gray-500">
-                                                    {aberto ? "−" : "+"}
-                                                </span>
+                                            <div>
+                                                {aberto ? "−" : "+"}
                                             </div>
                                         </div>
                                     </button>
