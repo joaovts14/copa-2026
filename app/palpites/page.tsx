@@ -275,40 +275,39 @@ export default function Palpites() {
                                                     minute: "2-digit",
                                                 })}
                                             </span>
+<div className="flex flex-col items-center">
+  <div className="flex items-center justify-center gap-4 text-lg font-black text-gray-900">
+    <div className="flex items-center gap-2">
+      {jogo.home_flag && (
+        <img
+          src={jogo.home_flag}
+          alt={jogo.home_team}
+          className="h-5 w-7 rounded object-cover md:h-6 md:w-9"
+        />
+      )}
+      <span>{jogo.home_team}</span>
+    </div>
 
-                                            <div className="flex items-center justify-center gap-4 text-lg font-black text-gray-900">
+    <span className="text-gray-500">x</span>
 
-                                                <div className="flex items-center gap-2">
-                                                    {jogo.home_flag && (
-                                                        <img
-                                                            src={jogo.home_flag}
-                                                            alt={jogo.home_team}
-                                                            className="h-5 w-7 rounded object-cover md:h-6 md:w-9"
-                                                        />
-                                                    )}
-                                                    <span>{jogo.home_team}</span>
-                                                </div>
+    <div className="flex items-center gap-2">
+      <span>{jogo.away_team}</span>
+      {jogo.away_flag && (
+        <img
+          src={jogo.away_flag}
+          alt={jogo.away_team}
+          className="h-5 w-7 rounded object-cover md:h-6 md:w-9"
+        />
+      )}
+    </div>
+  </div>
 
-                                                <span className="text-gray-500">x</span>
-
-                                                <div className="flex items-center gap-2">
-                                                    <span>{jogo.away_team}</span>
-                                                    {jogo.away_flag && (
-                                                        <img
-                                                            src={jogo.away_flag}
-                                                            alt={jogo.away_team}
-                                                            className="h-5 w-7 rounded object-cover md:h-6 md:w-9"
-                                                        />
-                                                    )}
-                                                </div>
-                                                {finalizado && (
-  <div className="mt-2 flex justify-center">
-    <span className="rounded-full bg-green-600 px-3 py-1 text-xs font-black text-white">
+  {finalizado && (
+    <span className="mt-2 rounded-full bg-green-600 px-3 py-1 text-xs font-black text-white">
       FINALIZADO • {jogo.real_home_score} x {jogo.real_away_score}
     </span>
-  </div>
-)}
-                                            </div>
+  )}
+</div>
 
                                             <div className="flex items-center justify-center gap-3 md:justify-end">
 
