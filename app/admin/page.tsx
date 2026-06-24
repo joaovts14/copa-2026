@@ -29,58 +29,82 @@ type Resultado = {
 
 export default function Admin() {
   const supabase = createClient();
+  const router = useRouter();
+
+  const ADMIN_EMAIL = "joaovitortobias@hotmail.com";
+
   const [statusRodadas, setStatusRodadas] = useState<any[]>([]);
   const [releases, setReleases] = useState<any[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
   const [resultados, setResultados] = useState<Record<number, Resultado>>({});
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
-  const ADMIN_EMAIL = "joaovitortobias@hotmail.com";
   const [autorizado, setAutorizado] = useState(false);
-useEffect(() => {
-  async function verificarAdmin() {
-    const { data } = await supabase.auth.getUser();
-    const user = data.user;
 
-    if (!user || user.email !== ADMIN_EMAIL) {
-      router.push("/jogos");
-      return;
+  useEffect(() => {
+    async function verificarAdmin() {
+      const { data } = await supabase.auth.getUser();
+      const user = data.user;
+
+      if (!user || user.email !== ADMIN_EMAIL) {
+        router.push("/jogos");
+        return;
+      }
+
+      setAutorizado(true);
+      carregarDados();
     }
 
-    setAutorizado(true);
-    carregarDados();
-  }
-
-  verificarAdmin();
-}, []);
+    verificarAdmin();
+  }, []);
 
   async function carregarDados() {
     setLoading(true);
+
     const { data: statusData } = await supabase
-  .from("admin_rodadas_status")
-  .select("*")
-  .order("round");
+      .from("admin_rodadas_status")
+      .select("*")
+      .order("round");
 
-  const { data: releasesData } = await supabase
-  .from("releases")
-  .select("*")
-  .eq("stage", "groups")
-  .order("round");
+    const { data: releasesData } = await supabase
+      .from("releases")
+      .select("*")
+      .eq("stage", "groups")
+      .order("round");
 
-setReleases(releasesData || []);
-
-setStatusRodadas(statusData || []);
-
-    const { data: teamsData } = await supabase.from("teams").select("*").order("name");
+    const { data: teamsData } = await supabase
+      .from("teams")
+      .select("*")
+      .order("name");
 
     const { data: matchesData } = await supabase
       .from("matches")
       .select("*")
       .order("match_date");
 
+    setStatusRodadas(statusData || []);
+    setReleases(releasesData || []);
     setTeams(teamsData || []);
-    setMatches(matchesData || []);
+
+    const ordenados = [...(matchesData || [])].sort((a, b) => {
+      const ordemStatus = (status: string) => {
+        if (status === "live") return 0;
+        if (status === "pending") return 1;
+        if (status === "finished") return 2;
+        return 3;
+      };
+
+      const statusA = ordemStatus(a.status);
+      const statusB = ordemStatus(b.status);
+
+      if (statusA !== statusB) return statusA - statusB;
+
+      return (
+        new Date(a.match_date).getTime() - new Date(b.match_date).getTime()
+      );
+    });
+
+    setMatches(ordenados);
 
     const mapa: Record<number, Resultado> = {};
 
@@ -104,6 +128,8 @@ setStatusRodadas(statusData || []);
     campo: "home" | "away",
     valor: string
   ) {
+    if (valor !== "" && Number(valor) < 0) return;
+
     setResultados((atual) => ({
       ...atual,
       [matchId]: {
@@ -115,9 +141,7 @@ setStatusRodadas(statusData || []);
   }
 
   async function alterarLiberacao(stage: string, round: number, released: boolean) {
-  const { error } = await supabase
-    .from("releases")
-    .upsert(
+    const { error } = await supabase.from("releases").upsert(
       {
         stage,
         round,
@@ -128,13 +152,27 @@ setStatusRodadas(statusData || []);
       }
     );
 
-  if (error) {
-    alert(error.message);
-    return;
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    carregarDados();
   }
 
-  carregarDados();
-}
+  async function alterarStatus(matchId: number, status: string) {
+    const { error } = await supabase
+      .from("matches")
+      .update({ status })
+      .eq("id", matchId);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    carregarDados();
+  }
 
   async function salvarResultado(matchId: number) {
     const resultado = resultados[matchId];
@@ -181,15 +219,33 @@ setStatusRodadas(statusData || []);
     carregarDados();
   }
 
+  function getStatusLabel(status: string) {
+    if (status === "finished") return "Finalizado";
+    if (status === "live") return "Em andamento";
+    return "Pendente";
+  }
+
+  function getStatusClass(status: string) {
+    if (status === "finished") {
+      return "bg-green-100 text-green-700";
+    }
+
+    if (status === "live") {
+      return "bg-blue-100 text-blue-700";
+    }
+
+    return "bg-yellow-100 text-yellow-700";
+  }
+
   if (!autorizado) {
-  return (
-    <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-green-700 via-emerald-600 to-yellow-400 p-6">
-      <div className="rounded-2xl bg-white p-6 font-bold text-gray-900 shadow-xl">
-        Verificando permissão...
-      </div>
-    </main>
-  );
-}
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-green-700 via-emerald-600 to-yellow-400 p-6">
+        <div className="rounded-2xl bg-white p-6 font-bold text-gray-900 shadow-xl">
+          Verificando permissão...
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-green-700 via-emerald-600 to-yellow-400 p-6">
@@ -204,135 +260,141 @@ setStatusRodadas(statusData || []);
             Preencha o placar real dos jogos para atualizar o ranking.
           </p>
         </header>
+
         <section className="mb-6 rounded-2xl bg-white p-6 shadow-xl">
-  <h2 className="text-2xl font-black text-gray-900">
-    Liberação dos palpites
-  </h2>
+          <h2 className="text-2xl font-black text-gray-900">
+            Liberação dos palpites
+          </h2>
 
-  <p className="mt-1 text-gray-600">
-    Controle quando os participantes poderão ver os palpites uns dos outros.
-  </p>
-
-  <div className="mt-5 grid gap-4 md:grid-cols-3">
-    {[1, 2, 3].map((round) => {
-      const release = releases.find(
-        (r) => r.stage === "groups" && r.round === round
-      );
-
-      const liberado = release?.released === true;
-
-      return (
-        <div
-          key={round}
-          className="rounded-2xl border border-gray-200 bg-gray-50 p-4"
-        >
-          <h3 className="text-lg font-black text-gray-900">
-            Rodada {round}
-          </h3>
-
-          <p
-            className={`mt-2 text-sm font-bold ${
-              liberado ? "text-green-700" : "text-red-700"
-            }`}
-          >
-            {liberado ? "Liberado" : "Bloqueado"}
+          <p className="mt-1 text-gray-600">
+            Controle quando os participantes poderão ver os palpites uns dos
+            outros.
           </p>
 
-          <button
-            onClick={() =>
-              alterarLiberacao("groups", round, !liberado)
-            }
-            className={`mt-4 w-full rounded-xl px-4 py-3 font-black text-white ${
-              liberado
-                ? "bg-red-600 hover:bg-red-700"
-                : "bg-green-600 hover:bg-green-700"
-            }`}
-          >
-            {liberado ? "Bloquear" : "Liberar"}
-          </button>
-        </div>
-      );
-    })}
-  </div>
-</section>
-<section className="mb-6 rounded-2xl bg-white p-6 shadow-xl">
-  <h2 className="text-2xl font-black text-gray-900">
-    Status de preenchimento
-  </h2>
+          <div className="mt-5 grid gap-4 md:grid-cols-3">
+            {[1, 2, 3].map((round) => {
+              const release = releases.find(
+                (r) => r.stage === "groups" && r.round === round
+              );
 
-  <p className="mt-1 text-gray-600">
-    Veja quantas pessoas ainda faltam preencher cada rodada.
-  </p>
+              const liberado = release?.released === true;
 
-  <div className="mt-5 grid gap-4 md:grid-cols-3">
-    {statusRodadas.map((r) => (
-      <div
-        key={`${r.stage}-${r.round}`}
-        className="rounded-2xl border border-gray-200 bg-gray-50 p-4"
-      >
-        <h3 className="text-lg font-black text-gray-900">
-          Rodada {r.round}
-        </h3>
-
-        <div className="mt-3 space-y-1 text-sm font-bold">
-          <p className="text-green-700">
-            ✅ Completos: {r.usuarios_completo}
-          </p>
-
-          <p className="text-red-700">
-            ❌ Faltando: {r.usuarios_faltando}
-          </p>
-
-          <p className="text-gray-700">
-            Jogos da rodada: {r.total_jogos}
-          </p>
-        </div>
-{r.lista_preencheu && r.lista_preencheu.length > 0 && (
-  <div className="mt-4 rounded-xl bg-green-50 p-3">
-    <p className="mb-2 text-sm font-black text-green-900">
-      Quem preencheu:
-    </p>
-
-    <div className="space-y-2">
-      {r.lista_preencheu.map((u: any) => (
-        <div
-          key={u.nome}
-          className="flex justify-between text-sm text-gray-700"
-        >
-          <span>{u.nome}</span>
-          <span className="font-bold text-green-700">
-            completo
-          </span>
-        </div>
-      ))}
-    </div>
-  </div>
-)}
-        {r.lista_faltando && r.lista_faltando.length > 0 && (
-          <div className="mt-4 rounded-xl bg-white p-3">
-            <p className="mb-2 text-sm font-black text-gray-900">
-              Quem falta:
-            </p>
-
-            <div className="space-y-2">
-              {r.lista_faltando.map((u: any) => (
+              return (
                 <div
-                  key={u.nome}
-                  className="flex justify-between text-sm text-gray-700"
+                  key={round}
+                  className="rounded-2xl border border-gray-200 bg-gray-50 p-4"
                 >
-                  <span>{u.nome}</span>
-                  <span className="font-bold text-red-600">
-                    faltam {u.faltando}
-                  </span>
+                  <h3 className="text-lg font-black text-gray-900">
+                    Rodada {round}
+                  </h3>
+
+                  <p
+                    className={`mt-2 text-sm font-bold ${
+                      liberado ? "text-green-700" : "text-red-700"
+                    }`}
+                  >
+                    {liberado ? "Liberado" : "Bloqueado"}
+                  </p>
+
+                  <button
+                    onClick={() =>
+                      alterarLiberacao("groups", round, !liberado)
+                    }
+                    className={`mt-4 w-full rounded-xl px-4 py-3 font-black text-white ${
+                      liberado
+                        ? "bg-red-600 hover:bg-red-700"
+                        : "bg-green-600 hover:bg-green-700"
+                    }`}
+                  >
+                    {liberado ? "Bloquear" : "Liberar"}
+                  </button>
                 </div>
-              ))}
-            </div>
+              );
+            })}
           </div>
-        )}
-      </div>
-    ))}
-  </div>
-</section>
+        </section>
+
+        <section className="mb-6 rounded-2xl bg-white p-6 shadow-xl">
+          <h2 className="text-2xl font-black text-gray-900">
+            Status de preenchimento
+          </h2>
+
+          <p className="mt-1 text-gray-600">
+            Veja quantas pessoas ainda faltam preencher cada rodada.
+          </p>
+
+          <div className="mt-5 grid gap-4 md:grid-cols-3">
+            {statusRodadas.map((r) => (
+              <div
+                key={`${r.stage}-${r.round}`}
+                className="rounded-2xl border border-gray-200 bg-gray-50 p-4"
+              >
+                <h3 className="text-lg font-black text-gray-900">
+                  Rodada {r.round}
+                </h3>
+
+                <div className="mt-3 space-y-1 text-sm font-bold">
+                  <p className="text-green-700">
+                    ✅ Completos: {r.usuarios_completo}
+                  </p>
+
+                  <p className="text-red-700">
+                    ❌ Faltando: {r.usuarios_faltando}
+                  </p>
+
+                  <p className="text-gray-700">
+                    Jogos da rodada: {r.total_jogos}
+                  </p>
+                </div>
+
+                {r.lista_preencheu && r.lista_preencheu.length > 0 && (
+                  <div className="mt-4 rounded-xl bg-green-50 p-3">
+                    <p className="mb-2 text-sm font-black text-green-900">
+                      Quem preencheu:
+                    </p>
+
+                    <div className="space-y-2">
+                      {r.lista_preencheu.map((u: any) => (
+                        <div
+                          key={u.nome}
+                          className="flex justify-between text-sm text-gray-700"
+                        >
+                          <span>{u.nome}</span>
+                          <span className="font-bold text-green-700">
+                            completo
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {r.lista_faltando && r.lista_faltando.length > 0 && (
+                  <div className="mt-4 rounded-xl bg-white p-3">
+                    <p className="mb-2 text-sm font-black text-gray-900">
+                      Quem falta:
+                    </p>
+
+                    <div className="space-y-2">
+                      {r.lista_faltando.map((u: any) => (
+                        <div
+                          key={u.nome}
+                          className="flex justify-between text-sm text-gray-700"
+                        >
+                          <span>{u.nome}</span>
+                          <span className="font-bold text-red-600">
+                            faltam {u.faltando}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+
         {loading && (
           <div className="rounded-xl bg-white p-6 text-center font-bold shadow">
             Carregando...
@@ -347,25 +409,23 @@ setStatusRodadas(statusData || []);
 
               return (
                 <div key={m.id} className="rounded-2xl bg-white p-5 shadow-xl">
-                  <div className="mb-3 flex items-center justify-between text-sm text-gray-500">
+                  <div className="mb-3 flex flex-col gap-2 text-sm text-gray-500 md:flex-row md:items-center md:justify-between">
                     <span>
                       Rodada {m.round} •{" "}
                       {new Date(m.match_date).toLocaleString("pt-BR")}
                     </span>
 
                     <span
-                      className={`rounded-full px-3 py-1 text-xs font-bold ${
-                        m.status === "finished"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-yellow-100 text-yellow-700"
-                      }`}
+                      className={`w-fit rounded-full px-3 py-1 text-xs font-bold ${getStatusClass(
+                        m.status
+                      )}`}
                     >
-                      {m.status === "finished" ? "Finalizado" : "Pendente"}
+                      {getStatusLabel(m.status)}
                     </span>
                   </div>
 
                   <div className="flex flex-col gap-4 md:grid md:grid-cols-[1fr_auto_1fr] md:items-center">
-                    <div className="flex items-center gap-2 font-bold">
+                    <div className="flex items-center gap-2 font-bold text-gray-900">
                       {homeTeam?.flag_url && (
                         <img
                           src={homeTeam.flag_url}
@@ -380,19 +440,21 @@ setStatusRodadas(statusData || []);
                       <input
                         type="number"
                         min={0}
-                        className="w-16 rounded-lg border p-2 text-center font-bold"
+                        inputMode="numeric"
+                        className="w-16 rounded-lg border border-gray-400 bg-white p-2 text-center text-lg font-black text-gray-950 placeholder-gray-500 shadow-sm"
                         value={resultados[m.id]?.home || ""}
                         onChange={(e) =>
                           alterarResultado(m.id, "home", e.target.value)
                         }
                       />
 
-                      <span className="font-black">x</span>
+                      <span className="font-black text-gray-900">x</span>
 
                       <input
                         type="number"
                         min={0}
-                        className="w-16 rounded-lg border p-2 text-center font-bold"
+                        inputMode="numeric"
+                        className="w-16 rounded-lg border border-gray-400 bg-white p-2 text-center text-lg font-black text-gray-950 placeholder-gray-500 shadow-sm"
                         value={resultados[m.id]?.away || ""}
                         onChange={(e) =>
                           alterarResultado(m.id, "away", e.target.value)
@@ -400,7 +462,7 @@ setStatusRodadas(statusData || []);
                       />
                     </div>
 
-                    <div className="flex items-center justify-end gap-2 font-bold">
+                    <div className="flex items-center justify-end gap-2 font-bold text-gray-900">
                       {awayTeam?.name}
                       {awayTeam?.flag_url && (
                         <img
@@ -412,19 +474,33 @@ setStatusRodadas(statusData || []);
                     </div>
                   </div>
 
-                  <div className="mt-4 flex flex-col gap-2 md:flex-row">
+                  <div className="mt-4 grid gap-2 md:grid-cols-4">
+                    <button
+                      onClick={() => alterarStatus(m.id, "live")}
+                      className="rounded-lg bg-blue-600 px-4 py-3 font-bold text-white hover:bg-blue-700"
+                    >
+                      Em andamento
+                    </button>
+
                     <button
                       onClick={() => salvarResultado(m.id)}
                       className="rounded-lg bg-green-600 px-4 py-3 font-bold text-white hover:bg-green-700"
                     >
-                      Salvar resultado
+                      Salvar final
+                    </button>
+
+                    <button
+                      onClick={() => alterarStatus(m.id, "pending")}
+                      className="rounded-lg bg-yellow-500 px-4 py-3 font-bold text-white hover:bg-yellow-600"
+                    >
+                      Pendente
                     </button>
 
                     <button
                       onClick={() => limparResultado(m.id)}
                       className="rounded-lg bg-gray-200 px-4 py-3 font-bold text-gray-700 hover:bg-gray-300"
                     >
-                      Limpar resultado
+                      Limpar
                     </button>
                   </div>
                 </div>
