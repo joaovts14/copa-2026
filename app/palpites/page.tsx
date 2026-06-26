@@ -364,7 +364,7 @@ export default function Palpites() {
                                                                         <img
                                                                             src={p.predicted_winner_flag}
                                                                             alt={p.predicted_winner_name}
-                                                                            className="h-3 w-5 rounded object-cover"
+                                                                            className="h-6 w-9 rounded object-cover shadow-sm ring-1 ring-gray-300"
                                                                         />
                                                                     )}
 
