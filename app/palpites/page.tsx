@@ -326,7 +326,7 @@ export default function Palpites() {
 
                                     {aberto && (
                                         <div className="px-5 pb-5">
-                                            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+                                            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
                                                 {listaOrdenada.map((p) => {
                                                     const resultado = calcularResultado(p);
 
