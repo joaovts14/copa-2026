@@ -19,6 +19,11 @@ type PublicPick = {
     away_score_pick: number;
     real_home_score: number | null;
     real_away_score: number | null;
+    predicted_winner_team_id: number | null;
+    predicted_winner_name: string | null;
+    predicted_winner_flag: string | null;
+    winner_team_id: number | null;
+    real_winner_name: string | null;
 };
 
 export default function Palpites() {
@@ -203,10 +208,10 @@ export default function Palpites() {
     }, {});
 
     const jogosOrdenados = Object.entries(jogos).sort(
-  (a, b) =>
-    new Date(a[1][0].match_date).getTime() -
-    new Date(b[1][0].match_date).getTime()
-);
+        (a, b) =>
+            new Date(a[1][0].match_date).getTime() -
+            new Date(b[1][0].match_date).getTime()
+    );
 
     return (
         <main className="min-h-screen bg-gradient-to-br from-green-700 via-emerald-600 to-yellow-400 p-6">
@@ -234,7 +239,7 @@ export default function Palpites() {
 
                 {!loading && Object.keys(jogos).length > 0 && (
                     <section className="overflow-hidden rounded-2xl bg-white shadow-xl">
-                      {jogosOrdenados.map(([matchId, lista], index) => {
+                        {jogosOrdenados.map(([matchId, lista], index) => {
                             const jogo = lista[0];
                             const aberto = jogosAbertos[Number(matchId)] === true;
                             const finalizado =
@@ -275,39 +280,39 @@ export default function Palpites() {
                                                     minute: "2-digit",
                                                 })}
                                             </span>
-<div className="flex flex-col items-center">
-  <div className="flex items-center justify-center gap-4 text-lg font-black text-gray-900">
-    <div className="flex items-center gap-2">
-      {jogo.home_flag && (
-        <img
-          src={jogo.home_flag}
-          alt={jogo.home_team}
-          className="h-5 w-7 rounded object-cover md:h-6 md:w-9"
-        />
-      )}
-      <span>{jogo.home_team}</span>
-    </div>
+                                            <div className="flex flex-col items-center">
+                                                <div className="flex items-center justify-center gap-4 text-lg font-black text-gray-900">
+                                                    <div className="flex items-center gap-2">
+                                                        {jogo.home_flag && (
+                                                            <img
+                                                                src={jogo.home_flag}
+                                                                alt={jogo.home_team}
+                                                                className="h-5 w-7 rounded object-cover md:h-6 md:w-9"
+                                                            />
+                                                        )}
+                                                        <span>{jogo.home_team}</span>
+                                                    </div>
 
-    <span className="text-gray-500">x</span>
+                                                    <span className="text-gray-500">x</span>
 
-    <div className="flex items-center gap-2">
-      <span>{jogo.away_team}</span>
-      {jogo.away_flag && (
-        <img
-          src={jogo.away_flag}
-          alt={jogo.away_team}
-          className="h-5 w-7 rounded object-cover md:h-6 md:w-9"
-        />
-      )}
-    </div>
-  </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <span>{jogo.away_team}</span>
+                                                        {jogo.away_flag && (
+                                                            <img
+                                                                src={jogo.away_flag}
+                                                                alt={jogo.away_team}
+                                                                className="h-5 w-7 rounded object-cover md:h-6 md:w-9"
+                                                            />
+                                                        )}
+                                                    </div>
+                                                </div>
 
-  {finalizado && (
-    <span className="mt-2 rounded-full bg-green-600 px-3 py-1 text-xs font-black text-white">
-      FINALIZADO • {jogo.real_home_score} x {jogo.real_away_score}
-    </span>
-  )}
-</div>
+                                                {finalizado && (
+                                                    <span className="mt-2 rounded-full bg-green-600 px-3 py-1 text-xs font-black text-white">
+                                                        FINALIZADO • {jogo.real_home_score} x {jogo.real_away_score}
+                                                    </span>
+                                                )}
+                                            </div>
 
                                             <div className="flex items-center justify-center gap-3 md:justify-end">
 
@@ -351,6 +356,21 @@ export default function Palpites() {
                                                             >
                                                                 {p.home_score_pick} x {p.away_score_pick}
                                                             </span>
+                                                            {p.stage !== "groups" && p.predicted_winner_name && (
+                                                                <div className="mt-2 flex items-center justify-end gap-1 text-xs font-bold text-gray-700">
+                                                                    <span>Passa:</span>
+
+                                                                    {p.predicted_winner_flag && (
+                                                                        <img
+                                                                            src={p.predicted_winner_flag}
+                                                                            alt={p.predicted_winner_name}
+                                                                            className="h-3 w-5 rounded object-cover"
+                                                                        />
+                                                                    )}
+
+                                                                    <span>{p.predicted_winner_name}</span>
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     );
                                                 })}

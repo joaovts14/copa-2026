@@ -69,8 +69,8 @@ export default function Admin() {
     const { data: releasesData } = await supabase
       .from("releases")
       .select("*")
-      .eq("stage", "groups")
-      .order("round");
+      .order("stage")
+      .order("round", { nullsFirst: false });
 
     const { data: teamsData } = await supabase
       .from("teams")
@@ -140,25 +140,44 @@ export default function Admin() {
     }));
   }
 
-  async function alterarLiberacao(stage: string, round: number, released: boolean) {
-    const { error } = await supabase.from("releases").upsert(
-      {
-        stage,
-        round,
-        released,
-      },
-      {
-        onConflict: "stage,round",
-      }
-    );
+async function alterarLiberacao(
+  stage: string,
+  round: number | null,
+  released: boolean
+) {
+  const existente = releases.find(
+    (r) =>
+      r.stage === stage &&
+      (round === null ? r.round === null : r.round === round)
+  );
+
+  if (existente) {
+    const { error } = await supabase
+      .from("releases")
+      .update({ released })
+      .eq("id", existente.id);
 
     if (error) {
       alert(error.message);
       return;
     }
+  } else {
+    const { error } = await supabase
+      .from("releases")
+      .insert({
+        stage,
+        round,
+        released,
+      });
 
-    carregarDados();
+    if (error) {
+      alert(error.message);
+      return;
+    }
   }
+
+  carregarDados();
+}
 
   async function alterarStatus(matchId: number, status: string) {
     const { error } = await supabase
@@ -236,6 +255,48 @@ export default function Admin() {
 
     return "bg-yellow-100 text-yellow-700";
   }
+  const fasesLiberacao = [
+  {
+    label: "Rodada 1",
+    stage: "groups",
+    round: 1,
+  },
+  {
+    label: "Rodada 2",
+    stage: "groups",
+    round: 2,
+  },
+  {
+    label: "Rodada 3",
+    stage: "groups",
+    round: 3,
+  },
+  {
+    label: "32 avos",
+    stage: "round_of_32",
+    round: null,
+  },
+  {
+    label: "Oitavas",
+    stage: "round_of_16",
+    round: null,
+  },
+  {
+    label: "Quartas",
+    stage: "quarterfinals",
+    round: null,
+  },
+  {
+    label: "Semifinais",
+    stage: "semifinals",
+    round: null,
+  },
+  {
+    label: "Final",
+    stage: "final",
+    round: null,
+  },
+];
 
   if (!autorizado) {
     return (
@@ -272,45 +333,51 @@ export default function Admin() {
           </p>
 
           <div className="mt-5 grid gap-4 md:grid-cols-3">
-            {[1, 2, 3].map((round) => {
-              const release = releases.find(
-                (r) => r.stage === "groups" && r.round === round
-              );
+{fasesLiberacao.map((fase) => {
+  const release = releases.find(
+    (r) =>
+      r.stage === fase.stage &&
+      (fase.round === null ? r.round === null : r.round === fase.round)
+  );
 
-              const liberado = release?.released === true;
+  const liberado = release?.released === true;
 
-              return (
-                <div
-                  key={round}
-                  className="rounded-2xl border border-gray-200 bg-gray-50 p-4"
-                >
-                  <h3 className="text-lg font-black text-gray-900">
-                    Rodada {round}
-                  </h3>
+  return (
+    <div
+      key={`${fase.stage}-${fase.round ?? "null"}`}
+      className="rounded-2xl border border-gray-200 bg-gray-50 p-4"
+    >
+      <h3 className="text-lg font-black text-gray-900">
+        {fase.label}
+      </h3>
 
-                  <p
-                    className={`mt-2 text-sm font-bold ${
-                      liberado ? "text-green-700" : "text-red-700"
-                    }`}
-                  >
-                    {liberado ? "Liberado" : "Bloqueado"}
-                  </p>
+      <p className="mt-1 text-xs font-bold text-gray-500">
+        {fase.stage}
+      </p>
 
-                  <button
-                    onClick={() =>
-                      alterarLiberacao("groups", round, !liberado)
-                    }
-                    className={`mt-4 w-full rounded-xl px-4 py-3 font-black text-white ${
-                      liberado
-                        ? "bg-red-600 hover:bg-red-700"
-                        : "bg-green-600 hover:bg-green-700"
-                    }`}
-                  >
-                    {liberado ? "Bloquear" : "Liberar"}
-                  </button>
-                </div>
-              );
-            })}
+      <p
+        className={`mt-2 text-sm font-bold ${
+          liberado ? "text-green-700" : "text-red-700"
+        }`}
+      >
+        {liberado ? "Liberado" : "Bloqueado"}
+      </p>
+
+      <button
+        onClick={() =>
+          alterarLiberacao(fase.stage, fase.round, !liberado)
+        }
+        className={`mt-4 w-full rounded-xl px-4 py-3 font-black text-white ${
+          liberado
+            ? "bg-red-600 hover:bg-red-700"
+            : "bg-green-600 hover:bg-green-700"
+        }`}
+      >
+        {liberado ? "Bloquear" : "Liberar"}
+      </button>
+    </div>
+  );
+})}
           </div>
         </section>
 
