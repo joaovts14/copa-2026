@@ -358,7 +358,7 @@ export default function Palpites() {
                                                             </span>
                                                             {p.stage !== "groups" && p.predicted_winner_name && (
                                                                 <div className="mt-2 flex items-center justify-end gap-1 text-xs font-bold text-gray-700">
-                                                                    <span>Passa:</span>
+                                                                  
 
                                                                     {p.predicted_winner_flag && (
                                                                         <img
@@ -368,7 +368,6 @@ export default function Palpites() {
                                                                         />
                                                                     )}
 
-                                                                    <span>{p.predicted_winner_name}</span>
                                                                 </div>
                                                             )}
                                                         </div>
