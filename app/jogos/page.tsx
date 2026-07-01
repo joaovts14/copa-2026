@@ -38,7 +38,7 @@ export default function Jogos() {
   const [user, setUser] = useState<any>(null);
   const [palpites, setPalpites] = useState<Record<number, Palpite>>({});
 
-  const [faseSelecionada, setFaseSelecionada] = useState("groups");
+  const [faseSelecionada, setFaseSelecionada] = useState("round_of_16");
   const [rodadaSelecionada, setRodadaSelecionada] = useState(1);
 
   const [loading, setLoading] = useState(true);
