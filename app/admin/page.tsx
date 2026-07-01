@@ -245,6 +245,19 @@ async function alterarLiberacao(
     if (status === "live") return "Em andamento";
     return "Pendente";
   }
+  async function limparVencedor(matchId: number) {
+  const { error } = await supabase
+    .from("matches")
+    .update({ winner_team_id: null })
+    .eq("id", matchId);
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  carregarDados();
+}
 
   async function alterarVencedor(matchId: number, winnerTeamId: number) {
   const { error } = await supabase
@@ -586,6 +599,13 @@ async function alterarLiberacao(
       >
         {awayTeam?.name}
       </button>
+      <button
+  type="button"
+  onClick={() => limparVencedor(m.id)}
+  className="col-span-2 rounded-xl border border-gray-300 bg-white px-3 py-3 text-sm font-black text-gray-700 hover:bg-gray-100"
+>
+  Limpar seleção
+</button>
     </div>
   </div>
 )}
