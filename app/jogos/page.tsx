@@ -261,47 +261,68 @@ function calcularPontos(match: Match, palpite?: Palpite) {
 
   return pontos;
 }
-
 function getResultadoPalpite(match: Match) {
-  const pontos = calcularPontos(match, palpites[match.id]);
+  const palpite = palpites[match.id];
 
-  if (pontos === null) return null;
-
-  if (pontos >= 10) {
-    return {
-      texto: "Placar exato",
-      classe: "bg-green-100 text-green-800 border-green-300",
-      pontos,
-    };
+  if (
+    !palpite ||
+    match.home_score === null ||
+    match.away_score === null
+  ) {
+    return null;
   }
 
-  if (pontos >= 7) {
-    return {
-      texto: "Vencedor + saldo",
-      classe: "bg-emerald-100 text-emerald-800 border-emerald-300",
-      pontos,
-    };
+  const realHome = match.home_score;
+  const realAway = match.away_score;
+  const pickHome = Number(palpite.home);
+  const pickAway = Number(palpite.away);
+
+  const pontos = calcularPontos(match, palpite);
+
+  let texto = "";
+  let classe = "";
+
+  if (realHome === pickHome && realAway === pickAway) {
+    texto = "Placar exato";
+    classe = "bg-green-100 text-green-800 border-green-300";
+  } else {
+    const acertouResultado =
+      (realHome > realAway && pickHome > pickAway) ||
+      (realHome < realAway && pickHome < pickAway) ||
+      (realHome === realAway && pickHome === pickAway);
+
+    if (acertouResultado) {
+      const saldoReal = realHome - realAway;
+      const saldoPalpite = pickHome - pickAway;
+
+      if (saldoReal === saldoPalpite) {
+        texto = "Vencedor + saldo";
+        classe = "bg-emerald-100 text-emerald-800 border-emerald-300";
+      } else {
+        texto = "Acertou vencedor";
+        classe = "bg-yellow-100 text-yellow-800 border-yellow-300";
+      }
+    } else if (realHome === pickHome || realAway === pickAway) {
+      texto = "Acerto parcial";
+      classe = "bg-orange-100 text-orange-800 border-orange-300";
+    } else {
+      texto = "Errou";
+      classe = "bg-red-100 text-red-800 border-red-300";
+    }
   }
 
-  if (pontos >= 5) {
-    return {
-      texto: "Acertou vencedor",
-      classe: "bg-yellow-100 text-yellow-800 border-yellow-300",
-      pontos,
-    };
-  }
+  const bonus =
+    match.stage !== "groups" &&
+    match.winner_team_id &&
+    palpite.predictedWinnerTeamId === match.winner_team_id;
 
-  if (pontos >= 2) {
-    return {
-      texto: "Acerto parcial",
-      classe: "bg-orange-100 text-orange-800 border-orange-300",
-      pontos,
-    };
+  if (bonus) {
+    texto += " + classificado";
   }
 
   return {
-    texto: "Errou",
-    classe: "bg-red-100 text-red-800 border-red-300",
+    texto,
+    classe,
     pontos,
   };
 }
