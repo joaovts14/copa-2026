@@ -266,6 +266,8 @@ function getResultadoPalpite(match: Match) {
 
   if (
     !palpite ||
+    palpite.home === "" ||
+    palpite.away === "" ||
     match.home_score === null ||
     match.away_score === null
   ) {
@@ -277,14 +279,14 @@ function getResultadoPalpite(match: Match) {
   const pickHome = Number(palpite.home);
   const pickAway = Number(palpite.away);
 
-  const pontos = calcularPontos(match, palpite);
-
-  let texto = "";
-  let classe = "";
+  let texto = "Errou";
+  let classe = "bg-red-100 text-red-800 border-red-300";
+  let pontosBase = 0;
 
   if (realHome === pickHome && realAway === pickAway) {
     texto = "Placar exato";
     classe = "bg-green-100 text-green-800 border-green-300";
+    pontosBase = 10;
   } else {
     const acertouResultado =
       (realHome > realAway && pickHome > pickAway) ||
@@ -298,32 +300,50 @@ function getResultadoPalpite(match: Match) {
       if (saldoReal === saldoPalpite) {
         texto = "Vencedor + saldo";
         classe = "bg-emerald-100 text-emerald-800 border-emerald-300";
+        pontosBase = 7;
       } else {
         texto = "Acertou vencedor";
         classe = "bg-yellow-100 text-yellow-800 border-yellow-300";
+        pontosBase = 5;
       }
     } else if (realHome === pickHome || realAway === pickAway) {
       texto = "Acerto parcial";
       classe = "bg-orange-100 text-orange-800 border-orange-300";
-    } else {
-      texto = "Errou";
-      classe = "bg-red-100 text-red-800 border-red-300";
+      pontosBase = 2;
     }
   }
 
-  const bonus =
-    match.stage !== "groups" &&
-    match.winner_team_id &&
-    palpite.predictedWinnerTeamId === match.winner_team_id;
+  const homeTeam = getTeam(match.home_team_id);
+  const awayTeam = getTeam(match.away_team_id);
 
-  if (bonus) {
-    texto += " + classificado";
+  const temBrasil =
+    homeTeam?.name === "Brasil" || awayTeam?.name === "Brasil";
+
+  const bonusBrasil = temBrasil && pontosBase > 0 ? 2 : 0;
+
+  let bonusClassificado = 0;
+
+  if (
+    match.stage !== "groups" &&
+    palpite.predictedWinnerTeamId &&
+    match.winner_team_id &&
+    palpite.predictedWinnerTeamId === match.winner_team_id
+  ) {
+    if (match.stage === "round_of_16") bonusClassificado = 3;
+    if (match.stage === "quarterfinals") bonusClassificado = 5;
+    if (match.stage === "semifinals") bonusClassificado = 7;
+    if (match.stage === "final") bonusClassificado = 10;
   }
+
+  const pontos = pontosBase + bonusBrasil + bonusClassificado;
 
   return {
     texto,
     classe,
     pontos,
+    pontosBase,
+    bonusBrasil,
+    bonusClassificado,
   };
 }
 
@@ -538,13 +558,27 @@ function palpiteEmpatado(matchId: number) {
     </div>
   </div>
 )}
-                 {getResultadoPalpite(m) && (
+{getResultadoPalpite(m) && (
   <div
     className={`mt-4 rounded-xl border px-4 py-3 text-center font-bold ${
       getResultadoPalpite(m)!.classe
     }`}
   >
-    {getResultadoPalpite(m)!.texto}: +{getResultadoPalpite(m)!.pontos} pts
+    <div>{getResultadoPalpite(m)!.texto}</div>
+
+    <div className="mt-1 text-sm">
+      Placar: +{getResultadoPalpite(m)!.pontosBase} pts
+      {getResultadoPalpite(m)!.bonusBrasil > 0 && (
+        <> • Brasil: +{getResultadoPalpite(m)!.bonusBrasil}</>
+      )}
+      {getResultadoPalpite(m)!.bonusClassificado > 0 && (
+        <> • Classificado: +{getResultadoPalpite(m)!.bonusClassificado}</>
+      )}
+    </div>
+
+    <div className="mt-1 text-base font-black">
+      Total: {getResultadoPalpite(m)!.pontos} pts
+    </div>
   </div>
 )}
               </div>
