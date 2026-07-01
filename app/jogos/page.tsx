@@ -21,6 +21,7 @@ type Match = {
   status: string;
   round: number;
   stage: string;
+  winner_team_id: number | null;
 };
 
 type Palpite = {
@@ -245,6 +246,18 @@ function calcularPontos(match: Match, palpite?: Palpite) {
   if (temBrasil && pontos > 0) {
     pontos += 2;
   }
+
+  if (
+  match.stage !== "groups" &&
+  palpite.predictedWinnerTeamId &&
+  (match as any).winner_team_id &&
+  palpite.predictedWinnerTeamId === (match as any).winner_team_id
+) {
+  if (match.stage === "round_of_16") pontos += 3;
+  if (match.stage === "quarterfinals") pontos += 5;
+  if (match.stage === "semifinals") pontos += 7;
+  if (match.stage === "final") pontos += 10;
+}
 
   return pontos;
 }

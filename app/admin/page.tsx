@@ -20,6 +20,8 @@ type Match = {
   away_score: number | null;
   status: string;
   round: number;
+  winner_team_id: number | null;
+  stage: string;
 };
 
 type Resultado = {
@@ -243,6 +245,20 @@ async function alterarLiberacao(
     if (status === "live") return "Em andamento";
     return "Pendente";
   }
+
+  async function alterarVencedor(matchId: number, winnerTeamId: number) {
+  const { error } = await supabase
+    .from("matches")
+    .update({ winner_team_id: winnerTeamId })
+    .eq("id", matchId);
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  carregarDados();
+}
 
   function getStatusClass(status: string) {
     if (status === "finished") {
@@ -540,6 +556,39 @@ async function alterarLiberacao(
                       )}
                     </div>
                   </div>
+                  {m.stage !== "groups" && (
+  <div className="mt-4 rounded-xl bg-gray-50 p-4">
+    <p className="mb-3 text-sm font-black text-gray-800">
+      Quem passou?
+    </p>
+
+    <div className="grid grid-cols-2 gap-2">
+      <button
+        type="button"
+        onClick={() => alterarVencedor(m.id, m.home_team_id)}
+        className={`rounded-xl border px-3 py-3 text-sm font-black ${
+          m.winner_team_id === m.home_team_id
+            ? "border-green-600 bg-green-100 text-green-800"
+            : "border-gray-300 bg-white text-gray-700"
+        }`}
+      >
+        {homeTeam?.name}
+      </button>
+
+      <button
+        type="button"
+        onClick={() => alterarVencedor(m.id, m.away_team_id)}
+        className={`rounded-xl border px-3 py-3 text-sm font-black ${
+          m.winner_team_id === m.away_team_id
+            ? "border-green-600 bg-green-100 text-green-800"
+            : "border-gray-300 bg-white text-gray-700"
+        }`}
+      >
+        {awayTeam?.name}
+      </button>
+    </div>
+  </div>
+)}
 
                   <div className="mt-4 grid gap-2 md:grid-cols-4">
                     <button
